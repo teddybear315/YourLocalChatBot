@@ -35,14 +35,16 @@ class Database(commands.Cog):
 			return
 
 		await _user.add_roles(self.streamerRole)
+		#SECTION layout of the database
 		db.insert_one({
-			"twitch_username": _username,
-			"message_id": None,
-			"discord_id": str(_user.id),
-			"response": {},
-			"custom_stream_url": None,
-			"balance": 0,
+			"twitch_username": _username,	#str
+			"message_id": None,				#int
+			"discord_id": str(_user.id),	#int
+			"response": {},					#json
+			"custom_stream_url": None,		#str
+			"balance": 0,					#int
 		})
+		#!SECTION
 		await ctx.send(f"{_user.mention}, {ctx.author.mention} has made you a streamer!")
 
 	@commands.command()
