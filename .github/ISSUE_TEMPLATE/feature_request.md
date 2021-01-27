@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an idea for this project
 title: "[FEAT REQ]"
-labels: documentation, enhancement, help wanted, invalid, question, wontfix
+labels: documentation, enhancement
 assignees: ''
 
 ---
