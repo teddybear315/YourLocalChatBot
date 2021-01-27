@@ -1,0 +1,8 @@
+{
+	"_comment": "in the list below enter the extensions you want to run without the file extension",
+	"exts": [
+		"games",
+		"database",
+		"utilities"
+	]
+}
