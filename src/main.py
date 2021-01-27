@@ -12,6 +12,7 @@ from modules import utils as u
 from modules.twitch_integration import Twitch
 from modules import db, config, secrets
 
+
 ## important variables
 __version__ = config["meta"]["version"]
 __build__ = config["meta"]["build_number"]
@@ -151,8 +152,15 @@ async def background_loop():
 		await t.check(announcementChannel)
 		await sleep(60)
 
+## basic commands
 
-# dev level commands
+@bot.command()
+async def version(ctx):
+	u.log(ctx)
+	await ctx.send(f"I'm running version {__version__} build #{__build__}")
+
+
+## dev level commands
 
 @bot.command()
 async def reload(ctx):

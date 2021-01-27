@@ -25,10 +25,9 @@ class Games(commands.Cog):
 			await ctx.send(f"{ctx.author.mention}, you must be a vip to play this game.")
 			return False
 		# TODO when database setup check if has enough points to play with
-		# TODO also check if leveled up enough
 		return True
 
-	@commands.command(name="blackjack", alieses=["bj"])
+	@commands.command(name="blackjack")
 	async def blackjack(self, ctx, points: int = None):
 		u.log(ctx)
 		_cfg = u.config["games"]["blackjack"]

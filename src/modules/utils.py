@@ -56,7 +56,7 @@ class Utils:
 			f.close()
 		return json.load(open(fp))
 
-	def log(self, msg, lvl = LOG): # TODO add logging to files
+	def log(self, msg, lvl = LOG):
 		"""Decent logging system"""
 		logString = f"{datetime.datetime.now().isoformat(timespec='seconds')}: {msg}"
 		if type(msg) is Context:
