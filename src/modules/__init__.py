@@ -1,9 +1,6 @@
+import sqlite3
 import json
-from modules.utils import Utils
+from modules.utilities import Utilities
 
-config = json.load(open("config/config.json"))
-secrets = json.load(open("config/secrets.json"))
-
-utils = Utils(config)
-
-db = {} # FIXME database dont even work yet lmao
+db = sqlite3.connect('main.db')
+u = Utilities()

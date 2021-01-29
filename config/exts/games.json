@@ -1,0 +1,13 @@
+{
+	"enabled": true,
+	"games": {
+		"blackjack": {
+			"enabled": true,
+			"win_multiplier": 2,
+			"bj_multiplier": 3.5,
+			"min_bet": 1,
+			"max_bet": 0,
+			"_comment": "to disable max_bet set to 0"
+		}
+	}
+}
