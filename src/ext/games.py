@@ -6,7 +6,7 @@ import modules.utilities as utils
 
 from discord.ext.commands 	import Context
 from discord.ext 			import commands, tasks
-from modules.utilities		import utilities as u,secrets,ylcb_config
+from modules.utilities		import logger as l, utilities as u,secrets,ylcb_config
 from ext 					import Extension, database
 
 
@@ -20,7 +20,6 @@ class games(Extension):
 			requirements={"database", "economy"},
 			config=utils.Config(f"exts/games.json")
 		)
-		self.db = bot.get_cog("database").db
 		self.econ = bot.get_cog("economy")
 		self.printer.start()
 	
@@ -32,7 +31,7 @@ class games(Extension):
 	@tasks.loop(hours=1)
 	async def printer(self):
 		chance = random.randint(1,100)
-		if chance <= 50: ## 75% (should be 50%)
+		if chance <= 50:
 			money = random.randint(10,1000)
 			embed_dict = {
 				"title":"Airdrop!",
@@ -54,22 +53,18 @@ class games(Extension):
 			await msg.add_reaction("🛄")
 			def check(reaction: discord.Reaction, user: discord.Member): return user != self.bot.user and str(reaction.emoji) == "🛄"
 			reaction, user = await self.bot.wait_for("reaction_add", check=check) #(":baggage_claim:")
-			
+			l.log(f"{user.name}#{user.mention} claimed an airdrop worth ${money}")
 			bal = self.econ.get_bal_from_d_id(user.id)
 			self.econ.set_balance_from_d_id(bal + money, user.id)
-			embed_dict = {
-				"title": "Claimed!",
-				"type": "rich",
-				"timestamp": datetime.datetime.now().isoformat(),
-				"color": 0x00ff00,
-				"fields": [
-					{"name": "Money:", "value": "$"+str(money)}
-				],
-				"author": {
-					"name": user.name,
-					"icon_url": str(user.avatar_url)
-				}
+			
+			embed_dict["title"] = "Claimed!"
+			embed_dict["timestamp"] = datetime.datetime.now().isoformat()
+			embed_dict["color"] = 0x00ff00
+			embed_dict["author"] = {
+				"name": user.name,
+				"icon_url": str(user.avatar_url)
 			}
+			
 			embed = discord.Embed.from_dict(embed_dict)
 			await msg.edit(embed=embed)
 	
@@ -89,7 +84,7 @@ class games(Extension):
 		if _cfg["min_bet"] < 1:
 			_cfg["min_bet"] = 1
 			self.config.updateFile()
-			u.log("min_bet was lower than 1, min_bet was set to 1", u.FLG)
+			l.log("min_bet was lower than 1, min_bet was set to 1", l.FLG)
 		if bet > _cfg["max_bet"] and _cfg["max_bet"] != 0:
 			await ctx.send(f"{ctx.author.mention}, the max bet is {_cfg['max_bet']}")
 			return False
@@ -101,7 +96,7 @@ class games(Extension):
 	Game functions need to start with this template
 	@commands.command(name="game_name")
 	async def game_name(self, ctx, points: int = None):
-		u.log(ctx)
+		l.log(ctx)
 		_cfg = self.config.data["games"][game_name]
 		points = self.econ.get_bal_from_d_id(ctx.author.id)
 		## important checks needed to play the game lol
@@ -112,14 +107,14 @@ class games(Extension):
 		## set points again because can_user_play edits
 		points = self.econ.get_bal_from_d_id(ctx.author.id)
 		## logging the successful start of a game
-		u.log(f"{game_name} start: {ctx.author.name}#{ctx.author.discriminator} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
+		l.log(f"{game_name} start: {ctx.author.name}#{ctx.author.discriminator} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
 	"""
 	
 	
 	@commands.command(name="blackjack")
 	async def blackjack(self, ctx, bet: float = None):
 		"""Blackjack minigame"""
-		u.log(ctx)
+		l.log(ctx)
 		_cfg = self.config.data["games"]["blackjack"]
 		points = self.econ.get_bal_from_d_id(ctx.author.id)
 		## important checks needed to play the game lol
@@ -130,7 +125,7 @@ class games(Extension):
 		## set points again because can_user_play edits
 		points = self.econ.get_bal_from_d_id(ctx.author.id)
 		## logging the successful start of a bj game
-		u.log(f"Blackjack start: {ctx.author.name}#{ctx.author.discriminator} | Bet:${bet}")
+		l.log(f"Blackjack start: {ctx.author.name}#{ctx.author.discriminator} | Bet:${bet}")
 		## lazy man's blackjack
 		p_score	  = random.randint(2,21)
 		cpu_score = random.randint(2,21)
@@ -157,7 +152,7 @@ class games(Extension):
 			embed_dict["title"] = f"You lost ${bet}!"
 		embed = discord.Embed.from_dict(embed_dict)
 		await ctx.send(embed=embed)
-		u.log(f"Blackjack outcome: {ctx.author.name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
+		l.log(f"Blackjack outcome: {ctx.author.name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
 
 
 def setup(bot):

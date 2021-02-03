@@ -4,7 +4,7 @@ import modules.utilities as utils
 
 from discord.ext 			import commands
 from ext 					import Extension
-from modules.utilities		import utilities as u
+from modules.utilities		import logger as l
 
 
 class economy(Extension):
@@ -40,7 +40,7 @@ class economy(Extension):
 	
 	@commands.command(name="balance")
 	async def balance(self,ctx):
-		u.log(ctx)
+		l.log(ctx)
 		points = self.get_bal_from_d_id(ctx.author.id)
 		embed_dict = {
 			"title":"Bank",
@@ -61,9 +61,9 @@ class economy(Extension):
 	
 	@commands.command(name="pay")
 	async def pay(self,ctx,payee: discord.Member, amount: int = 50, *, message: str = None):
-		u.log(ctx)
+		l.log(ctx)
 		if self.can_pay_user(ctx.author,payee,amount):
-			u.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: APPROVED,PENDING")
+			l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: APPROVED,PENDING")
 			snd_bal = self.get_bal_from_d_id(ctx.author.id)
 			self.set_balance_from_d_id(snd_bal-amount, ctx.author.id)
 			embed_dict = {
@@ -90,29 +90,29 @@ class economy(Extension):
 				embed_dict["color"] = 0x00ff00
 				rec_bal = self.get_bal_from_d_id(payee.id)
 				self.set_balance_from_d_id(rec_bal+amount, payee.id)
-				u.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: ACCEPTED,PAID")
+				l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: ACCEPTED,PAID")
 			elif str(reaction.emoji) == "❎" and user == ctx.author:
 				await msg.delete()
 			elif str(reaction.emoji) == "❎":
 				embed_dict["title"] = "Check [DECLINED]"
 				embed_dict["color"] = 0xff0000
-				u.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: DECLINED,REFUNDED")
+				l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: DECLINED,REFUNDED")
 				snd_bal = self.get_bal_from_d_id(ctx.author.id)
 				self.set_balance_from_d_id(snd_bal+amount, ctx.author.id)
 		else:
-			u.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: DECLINED")
+			l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: DECLINED")
 			await ctx.send(f"{ctx.author.mention}, you only have ${self.get_bal_from_d_id(ctx.author.id)}")
 		embed_dict["timestamp"] = datetime.datetime.now().isoformat()
 		await msg.edit(content=None, embed=discord.Embed.from_dict(embed_dict))
 		try: await msg.clear_reactions()
-		except Exception as e: u.log(e, u.WRN)
+		except Exception as e: l.log(e, l.WRN)
 	
 	
 	@commands.command(name="request")
 	async def request(self,ctx,sender: discord.Member, amount: int = 50):
-		u.log(ctx)
+		l.log(ctx)
 		if self.can_pay_user(sender, ctx.author, amount):
-			u.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: APPROVED,PENDING")
+			l.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: APPROVED,PENDING")
 			snd_bal = self.get_bal_from_d_id(sender.id)
 			self.set_balance_from_d_id(snd_bal-amount, sender.id)
 			embed_dict = {
@@ -138,22 +138,22 @@ class economy(Extension):
 				embed_dict["color"] = 0x00ff00
 				rec_bal = self.get_bal_from_d_id(ctx.author.id)
 				self.set_balance_from_d_id(rec_bal+amount, ctx.author.id)
-				u.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: ACCEPTED,PAID")
+				l.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: ACCEPTED,PAID")
 			elif str(reaction.emoji) == "❎" and user == ctx.author:
 				await msg.delete()
 			elif str(reaction.emoji) == "❎":
 				embed_dict["title"] = "Money Request [DECLINED]"
 				embed_dict["color"] = 0xff0000
-				u.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: DECLINED,REFUNDED")
+				l.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: DECLINED,REFUNDED")
 				snd_bal = self.get_bal_from_d_id(sender.id)
 				self.set_balance_from_d_id(snd_bal+amount, ctx.author.id)
 		else:
-			u.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: DECLINED")
+			l.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: DECLINED")
 			await ctx.send(f"{ctx.author.mention}, you only have ${self.get_bal_from_d_id(ctx.author.id)}")
 		embed_dict["timestamp"] = datetime.datetime.now().isoformat()
 		await msg.edit(content=None, embed=discord.Embed.from_dict(embed_dict))
 		try: await msg.clear_reactions()
-		except Exception as e: u.log(e, u.WRN)
+		except Exception as e: l.log(e, l.WRN)
 
 
 def setup(bot):

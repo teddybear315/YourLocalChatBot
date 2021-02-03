@@ -8,8 +8,8 @@ from discord.ext.commands import Bot
 
 ## importing local modules
 import ext
-from modules.utilities import ylcb_config,secrets
-from modules.utilities import utilities as u
+from modules.utilities import ylcb_config,secrets,utilities
+from modules.utilities import Logger as l
 
 ## important variables
 __version__	= ylcb_config.data["meta"]["version"]
@@ -46,8 +46,8 @@ announcementChannel	: discord.TextChannel
 
 @bot.event
 async def on_ready():
-	u.log("Bot ready...")
-	u.log(f"Running version: {__version__}b{__build__}")
+	l.log("Bot ready...")
+	l.log(f"Running version: {__version__}b{__build__}")
 	
 	global guild
 	global secrets
@@ -87,33 +87,33 @@ async def on_ready():
 		msg = await changelogChannel.send(embed=embed)
 		secrets.data["CHANGELOG_MESSAGE_ID"] = msg.id
 		## updates ylcb_config
-		secrets = u.reloadylcb_config(secrets, "secrets.json")
+		secrets.updateFile()
+		secrets = secrets.updateData()
 	## if new build detected and not debugging 
 	elif __build__ != secrets.data["CACHED_BUILD"] and not __debug__:
 		msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 		if msg.author != bot.user:
-			u.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", u.WRN)
+			l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN)
 		else:
 			await msg.edit(embed=embed)
 	
 	##ANCHOR for every extension you want to load, load it
 	for extension in ext.extensions.data["load"]:
 		bot.load_extension(f"ext.{extension}")
-		u.log(f"Loading {extension}...")
+		l.log(f"Loading {extension}...")
 		loaded = True
 		for requirement in bot.get_cog(extension).requirements:
 			if not bot._BotBase__extensions.__contains__(f"ext.{requirement}"):
 				try: bot.load_extension(f"ext.{requirement}")
 				except Exception as e: 
-					u.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}",u.ERR)
-					u.log(e,u.ERR)
+					l.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}", l.ERR)
+					l.log(e,l.ERR)
 					bot.remove_cog(f"ext.{extension}")
 					loaded = False
-				else: u.log(f"Loaded requirement {requirement}")
-			else: u.log(f"Requirement {requirement} met")
-		if loaded: u.log(f"Loaded {extension}")
-	
-	u.log("YLCB logged in")
+				else: l.log(f"Loaded requirement {requirement}")
+			else: l.log(f"Requirement {requirement} met")
+		if loaded: l.log(f"Loaded {extension}")
+	l.log("YLCB logged in")
 
 
 @bot.event
@@ -137,12 +137,12 @@ async def on_message(message: discord.Message):
 		embed.add_field(name="Request", value=message.content, inline=True)
 		if message.author.id not in ylcb_config.data["devs"]:
 			await message.author.send("Your request has been sent to the developers. They will respond as soon as possible. The embed below is what they have recieved.", embed=embed)
-		u.log(f"Request from {message.author.name}#{message.author.discriminator} recieved")
+		l.log(f"Request from {message.author.name}#{message.author.discriminator} recieved")
 		
 		for dev in ylcb_config.data["devs"]:
 			developer: discord.User = await bot.fetch_user(dev)
 			if developer: await developer.send(embed=embed)
-			else: u.log(f"Developer with ID {dev} does not exist!", u.ERR)
+			else: l.log(f"Developer with ID {dev} does not exist!", l.ERR)
 	await bot.process_commands(message)
 
 
@@ -150,7 +150,7 @@ async def on_message(message: discord.Message):
 
 @bot.command()
 async def version(ctx):
-	u.log(ctx)
+	l.log(ctx)
 	await ctx.send(f"I'm running version {__version__} build #{__build__}")
 
 
@@ -160,8 +160,8 @@ async def version(ctx):
 async def dev(self, ctx, _user: discord.Member = None):
 	"""Add a developer to the team"""
 	#global ylcb_config
-	u.log(ctx)
-	if not u.dev(ctx.author):
+	l.log(ctx)
+	if not utilities.dev(ctx.author):
 		await ctx.send(f"{ctx.author.mention}, only developers can use this command.")
 		return
 	if not _user:
@@ -181,19 +181,19 @@ async def dev(self, ctx, _user: discord.Member = None):
 @bot.command()
 async def stop(ctx):
 	"""Safely  the bot"""
-	if not u.dev(ctx.author):
+	if not l.dev(ctx.author):
 		await ctx.send(f"{ctx.author.mention}, only developers can use this command.")
 		return
 	
-	u.log("Developer initiated logout...", u.FLG)
+	l.log("Developer initiated logout...", l.FLG)
 	await ctx.send(f"Goodbye.")
 	await bot.close()
-	u.log("Successfully logged out and closed. Exiting...", u.FLG)
+	l.log("Successfully logged out and closed. Exiting...", l.FLG)
 	exit(1)
 
-u.log("Starting script...")
+l.log("Starting script...")
 if __debug__:
-	u.log("Debug mode on", u.FLG)
+	l.log("Debug mode on", l.FLG)
 	bot.run(secrets.data["dev_token"])
 else:
 	bot.run(secrets.data["token"])

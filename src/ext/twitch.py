@@ -4,7 +4,7 @@ import modules.utilities as utils
 
 from discord.ext.commands	import Context
 from discord.ext			import commands, tasks
-from modules.utilities		import utilities as u,secrets,ylcb_config
+from modules.utilities		import logger as l,secrets,ylcb_config, utilities as u
 from ext					import *
 import datetime
 
@@ -34,7 +34,7 @@ class twitch(Extension):
 	@commands.command(name="streamer")
 	async def streamer(self, ctx: Context, _user: discord.Member = None, _username: str = None) -> None:
 		"""Adds twitch username to the database"""
-		u.log(ctx)
+		l.log(ctx)
 		if not u.admin(ctx.author):
 			await ctx.send(f"{ctx.author.mention}, only admins can use this command.")
 			return
@@ -74,7 +74,7 @@ class twitch(Extension):
 	@commands.command()
 	async def raid(self, ctx, twitchChannel = None):
 		"""Gives specified use a shoutout"""
-		u.log(ctx)
+		l.log(ctx)
 		if not u.admin(ctx.author):
 			await ctx.send(f"{ctx.author.mention}, only admins can use this command.")
 			return
@@ -100,7 +100,7 @@ class twitch(Extension):
 				"Authorization": f"Bearer {secrets.data['twitch_access_token']}"
 			}
 			
-			u.log(f"\tChecking if {username} is live...")
+			l.log(f"\tChecking if {username} is live...")
 			
 			r = requests.get(f"https://api.twitch.tv/helix/streams?user_login={username}", headers=headers)
 			try: streamData = r.json()["data"][0]
@@ -148,20 +148,20 @@ class twitch(Extension):
 				embed = discord.Embed.from_dict(embed_dict)
 				
 				if not message_id:
-					u.log(f"\t\t{username} is now live, announcing stream...")
+					l.log(f"\t\t{username} is now live, announcing stream...")
 					if not __debug__:msg = await streamerChannel.send(f"@everyone {user.mention} is live!", embed=embed)
 					else			:msg = await streamerChannel.send(f"{user.mention} is live!", embed=embed)
 					self.db.execute("UPDATE Users SET message_id=:id WHERE twitch_username=:username", {"id":msg.id,"username":username})
 					self.db.commit()
 				elif response != streamData:
 					msg = await streamerChannel.fetch_message(streamer[1])
-					u.log(f"\t\tUpdating {username}\'s live message...")
+					l.log(f"\t\tUpdating {username}\'s live message...")
 					if not __debug__:msg = await msg.edit(content=f"@everyone {user.mention} is live!", embed=embed)
 					else			:msg = await msg.edit(content=f"{user.mention} is live!", embed=embed)
 					self.db.execute("UPDATE Users SET response=:json WHERE twitch_username=:username", {"json":json.dumps(streamData),"username":username})
 					self.db.commit()
 			elif streamer[1]:
-				u.log(f"\t\t{username} is no longer live, deleting message...")
+				l.log(f"\t\t{username} is no longer live, deleting message...")
 				msg = await streamerChannel.fetch_message(streamer[1])
 				await msg.delete()
 				self.db.execute("UPDATE Users SET message_id=:id,response=:json WHERE twitch_username=:username", {"id":None,"json":"{}","username":username})
@@ -171,9 +171,9 @@ class twitch(Extension):
 	
 	@tasks.loop(seconds=60)
 	async def printer(self):
-		u.log("Checking twitch...")
+		l.log("Checking twitch...")
 		if await self.check(self.bot.get_channel(utils.ylcb_config.data["discord"]["announcement_channel_id"])):
-			u.log("Check Successful")
+			l.log("Check Successful")
 	
 	
 	@printer.before_loop

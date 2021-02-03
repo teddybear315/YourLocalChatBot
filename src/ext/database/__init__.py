@@ -1,6 +1,5 @@
 """ This is an example of a multi-file and useful extension. database - ylcb-devs """
-import discord
-import sqlite3
+import discord, sqlite3
 
 import modules.utilities as utils
 
@@ -24,19 +23,17 @@ class database(Extension):
 	@commands.Cog.listener()
 	async def on_member_join(self, user: discord.Member):
 		self.db.execute(
-			"INSERT INTO Users VALUES (:username,:id,:d_id,:json,:bal)", 
+			"INSERT INTO Users VALUES (:username,:id,:d_id,:json,:bal,:inventory)", 
 			{
 				"username": None,
 				"id": None,
 				"d_id": user.id,
 				"json": "{}",
-				"bal": 100
+				"bal": 100,
+				"inventory": "{}"
 			}
 		)
 		self.db.commit()
-
-	# if db.find({"discord_id": str(user.id)}):
-	# 	db.delete_one({"discord_id": str(user.id)})
 
 
 def setup(bot):
