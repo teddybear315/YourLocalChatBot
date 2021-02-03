@@ -112,7 +112,7 @@ class economy(Extension):
 	async def request(self,ctx,sender: discord.Member, amount: int = 50):
 		u.log(ctx)
 		if self.can_pay_user(sender, ctx.author, amount):
-			u.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{payer.discriminator} | Status: APPROVED,PENDING")
+			u.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: APPROVED,PENDING")
 			snd_bal = self.get_bal_from_d_id(sender.id)
 			self.set_balance_from_d_id(snd_bal-amount, sender.id)
 			embed_dict = {
