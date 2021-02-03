@@ -1,4 +1,4 @@
-import discord
+import discord, discord.errors
 import json
 import os
 
@@ -8,8 +8,8 @@ from discord.ext.commands import Bot
 
 ## importing local modules
 import ext
-from modules.utilities import ylcb_config,secrets,Utilities
-from modules import db, u
+from modules.utilities import ylcb_config,secrets
+from modules.utilities import utilities as u
 
 ## important variables
 __version__	= ylcb_config.data["meta"]["version"]
@@ -20,6 +20,7 @@ if __debug__:
 	prefix = ylcb_config.data["bot"]["dev_prefix"]
 else:
 	prefix = ylcb_config.data["bot"]["prefix"]
+
 
 bot = Bot(	
 	command_prefix	= prefix,
@@ -96,10 +97,21 @@ async def on_ready():
 			await msg.edit(embed=embed)
 	
 	##ANCHOR for every extension you want to load, load it
-	for extension in ext.desired_extensions:
+	for extension in ext.extensions.data["load"]:
 		bot.load_extension(f"ext.{extension}")
-		u.log(f"Loaded {extension}")
-		# TODO check if all requirements for all extensions are loaded
+		u.log(f"Loading {extension}...")
+		loaded = True
+		for requirement in bot.get_cog(extension).requirements:
+			if not bot._BotBase__extensions.__contains__(f"ext.{requirement}"):
+				try: bot.load_extension(f"ext.{requirement}")
+				except Exception as e: 
+					u.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}",u.ERR)
+					u.log(e,u.ERR)
+					bot.remove_cog(f"ext.{extension}")
+					loaded = False
+				else: u.log(f"Loaded requirement {requirement}")
+			else: u.log(f"Requirement {requirement} met")
+		if loaded: u.log(f"Loaded {extension}")
 	
 	u.log("YLCB logged in")
 
@@ -108,14 +120,11 @@ async def on_ready():
 async def on_member_join(user: discord.Member):
 	await welcomeChannel.send(f"Welcome to {guild.name}, {user.mention}")
 	await user.add_roles(memberRole)
-	# TODO make a database entry for new member
 
 
 @bot.event
 async def on_member_remove(user: discord.Member):
 	await welcomeChannel.send(f"We will miss you, {user.name}")
-	if db.find({"discord_id": str(user.id)}):
-		db.delete_one({"discord_id": str(user.id)})
 
 
 @bot.event
@@ -135,10 +144,6 @@ async def on_message(message: discord.Message):
 			if developer: await developer.send(embed=embed)
 			else: u.log(f"Developer with ID {dev} does not exist!", u.ERR)
 	await bot.process_commands(message)
-
-
-async def background_loop():
-	await bot.wait_until_ready()
 
 
 ## basic commands
@@ -174,19 +179,6 @@ async def dev(self, ctx, _user: discord.Member = None):
 
 
 @bot.command()
-async def reload(ctx):
-	"""Reloads config file"""
-	u.log(ctx)
-	if not u.dev(ctx.author):
-		await ctx.send(f"{ctx.author.mention}, only developers can use this command.")
-		return
-	
-	ylcb_config.updateFile()
-	await ctx.send(f"{ctx.author.mention}, reloaded ylcb_config!")
-	return
-
-
-@bot.command()
 async def stop(ctx):
 	"""Safely  the bot"""
 	if not u.dev(ctx.author):
@@ -200,9 +192,8 @@ async def stop(ctx):
 	exit(1)
 
 u.log("Starting script...")
-bot.loop.create_task(background_loop())
 if __debug__:
-	bot.run(secrets.data["dev_token"])
 	u.log("Debug mode on", u.FLG)
+	bot.run(secrets.data["dev_token"])
 else:
 	bot.run(secrets.data["token"])

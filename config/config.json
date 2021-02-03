@@ -20,7 +20,9 @@
 			"\t- use `--nolog to disable file output`",
 			"Added FLG option to logger",
 			"\t- changes log prefix and color to flag outputs as important",
-			"Added Config class in modules.utilities"
+			"Added Config class in modules.utilities",
+			"Added database extension",
+			"Added extension requirements"
 		]
 	},
 	"discord": {
@@ -28,7 +30,8 @@
 		"changelog_channel_id": 802736425870688266,
 		"suggestion_channel_id": 802741003453857863,
 		"welcome_channel_id": 802740915630374952,
-		"announcement_channel_id": 802740942666334209,
+		"announcement_channel_id": 802740768225624085,
+		"event_channel_id": 805535613867786261,
 		"member_role_id": 802752009862250506,
 		"streamer_role_id": 802750798025981982
 	}

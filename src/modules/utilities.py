@@ -12,17 +12,19 @@ class Config:
 	def __init__(self, path: str = "config.json"):
 		"""Config()"""
 		self.path = f"config/{path}"
+		if __debug__: self.path = f"config/DEBUG {path}"
+		self.data: dict
 		self.updateData()
 	
 	
-	def updateFile(self):
+	def updateFile(self) -> None:
 		"""Updates config file with current data"""
 		with open(self.path, "w+") as f:
 			f.write(json.dumps(self.data))
 			f.close()
 	
 	
-	def updateData(self):
+	def updateData(self) -> dict:
 		"""Loads contents of config file into data"""
 		self.data = json.load(open(self.path))
 		return self.data
@@ -40,20 +42,20 @@ class Utilities:
 		self.log_file_path = f"logs/{str(datetime.datetime.now()).replace(':', '-')}.txt"
 	
 	
-	def admin(self, author: discord.Member):
+	def admin(self, author: discord.Member) -> bool:
 		"""Returns if user is an admin"""
-		if author.guild_permissions().administrator: return True
+		if author.guild_permissions.administrator: return True
 		return False
 	
 	
-	def streamer(self, user: discord.Member):
+	def streamer(self, user: discord.Member) -> bool:
 		"""Returns if a user is a streamer"""
 		for role in user.roles:
 			if role.id == ylcb_config.data["discord"]["streamer_role_id"]: return True
 		return False
 	
 	
-	def dev(self, author: discord.Member):
+	def dev(self, author: discord.Member) -> bool:
 		"""Returns if user is a developer"""
 		if author.id in ylcb_config.data["devs"]: return True
 		return False
@@ -89,3 +91,4 @@ class Utilities:
 
 ylcb_config = Config("config.json")
 secrets = Config("secrets.json")
+utilities = Utilities()

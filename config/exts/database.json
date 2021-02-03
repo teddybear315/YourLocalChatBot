@@ -1,0 +1,10 @@
+{
+	"columns": {
+		"twitch_username": null,
+		"message_id": null,
+		"discord_id": 0,
+		"response" : "{}",
+		"balance": 100,
+		"inventory": "{}"
+	}
+}
