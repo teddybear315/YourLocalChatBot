@@ -1,0 +1,4 @@
+secrets.json
+main.db
+logs/
+__pycache__/
