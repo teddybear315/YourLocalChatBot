@@ -10,7 +10,6 @@ class Config:
 	def __init__(self, path: str = "config.json"):
 		"""Config()"""
 		self.path = f"config/{path}"
-		if __debug__: self.path = f"config/DEBUG {path}"
 		self.data: dict
 		self.updateData()
 	
@@ -40,6 +39,7 @@ class Logger:
 	def __init__(self):
 		"""Logger()"""
 		self.log_file_path = f"logs/{str(datetime.datetime.now()).replace(':', '-')}.log"
+		if __debug__: self.log_file_path = f"logs/DEBUG {str(datetime.datetime.now()).replace(':', '-')}.log"
 	
 	
 	def log(self, msg, lvl = LOG):
