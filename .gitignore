@@ -1,3 +1,4 @@
 secrets.json
 logs/
 __pycache__/*.*
+src/ext/database/main.db
