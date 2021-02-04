@@ -9,7 +9,7 @@ extensions = Config("extensions.json")
 
 
 class Extension(Cog):
-	def __init__(self, bot: Bot, name: str, requirements: list = {}, config: Config = {}):
-		self.requirements = requirements
-		self.config = config
+	def __init__(self, bot: Bot, name: str):
+		self.config = Config(f"{name.replace('.', '/')}.json")
+		self.cog_name = name
 		self.bot = bot

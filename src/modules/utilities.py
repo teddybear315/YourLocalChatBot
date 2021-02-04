@@ -1,4 +1,4 @@
-import datetime, json, gzip, discord
+import datetime, json, discord
 
 from discord.ext.commands import Context
 from neotermcolor import cprint
@@ -38,36 +38,41 @@ class Logger:
 	
 	def __init__(self):
 		"""Logger()"""
-		self.log_file_path = f"logs/{str(datetime.datetime.now()).replace(':', '-')}.log"
-		if __debug__: self.log_file_path = f"logs/DEBUG {str(datetime.datetime.now()).replace(':', '-')}.log"
+		ts = str(datetime.datetime.now()).replace(':', '-')
+		self.log_file_path = f"logs/{ts}.log"
+		if __debug__: self.log_file_path = f"logs/DEBUG {ts}.log"
+		log_file = open(self.log_file_path, "a+")
+		log_file.close()
 	
 	
 	def log(self, msg, lvl = LOG):
 		"""Decent logging system"""
 		timestamp = str(datetime.datetime.now().isoformat(timespec='seconds')).replace('T', ' ')
-		log_file = open(self.log_file_path, "a+")
+		
+		prefix = "LOG"
+		color = "white"
 		
 		if type(msg) is Context:
-			logString = f"{timestamp}: {msg.command.name} command ran by {msg.author.name}#{msg.author.discriminator}"
-			lvl = CMD
-		else: logString = f"{timestamp}: {msg}"
+			logString = f"[{prefix}] {timestamp}: {msg.command.name} command ran by {msg.author.name}#{msg.author.discriminator}"
+			lvl = self.CMD
+		else: logString = f"[{prefix}] {timestamp}: {msg}"
 		
-		if lvl == WRN:
-			cprint(f"[WRN] {logString}", color="yellow")
-			log_file.write(f"[WRN] {logString}\n")
-		elif lvl == ERR:
-			cprint(f"[ERR] {logString}", color="red")
-			log_file.write(f"[ERR] {logString}\n")
-		elif lvl == CMD:
-			cprint(f"[CMD] {logString}", color="green")
-			log_file.write(f"[CMD] {logString}\n")
-		elif lvl == FLG:
-			cprint(f"[FLG] {logString}", color="magenta")
-			log_file.write(f"[FLG] {logString}\n")
-		else:
-			print(f"[LOG] {logString}")
-			log_file.write(f"[LOG] {logString}\n")
-		gzip.compress(9)
+		if lvl == self.WRN:
+			prefix = "WRN"
+			color = "yellow"
+		elif lvl == self.ERR:
+			prefix = "ERR"
+			color = "red"
+		elif lvl == self.CMD:
+			prefix = "CMD"
+			color = "green"
+		elif lvl == self.FLG:
+			prefix = "FLG"
+			color = "magenta"
+		
+		cprint(logString, color=color)
+		log_file = open(self.log_file_path, "a+")
+		log_file.write(logString + "\n")
 		log_file.close()
 
 

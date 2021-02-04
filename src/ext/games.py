@@ -14,12 +14,7 @@ class games(Extension):
 	"""Games Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
 		"""Games(bot)"""
-		super().__init__(
-			bot,
-			"ext.games",
-			requirements={"database", "economy"},
-			config=utils.Config(f"exts/games.json")
-		)
+		super().__init__(bot, "ext.games")
 		self.econ = bot.get_cog("economy")
 		self.printer.start()
 	
@@ -30,6 +25,7 @@ class games(Extension):
 	
 	@tasks.loop(hours=1)
 	async def printer(self):
+		return
 		chance = random.randint(1,100)
 		if chance <= 50:
 			money = random.randint(10,1000)
@@ -53,7 +49,7 @@ class games(Extension):
 			await msg.add_reaction("🛄")
 			def check(reaction: discord.Reaction, user: discord.Member): return user != self.bot.user and str(reaction.emoji) == "🛄"
 			reaction, user = await self.bot.wait_for("reaction_add", check=check) #(":baggage_claim:")
-			l.log(f"{user.name}#{user.mention} claimed an airdrop worth ${money}")
+			l.log(f"{user.name}#{user.discriminator} claimed an airdrop worth ${money}")
 			bal = self.econ.get_bal_from_d_id(user.id)
 			self.econ.set_balance_from_d_id(bal + money, user.id)
 			

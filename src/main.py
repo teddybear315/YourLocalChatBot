@@ -8,8 +8,7 @@ from discord.ext.commands import Bot
 
 ## importing local modules
 import ext
-from modules.utilities import ylcb_config,secrets,utilities
-from modules.utilities import Logger as l
+from modules.utilities import ylcb_config,secrets,utilities as u, logger as l, Config
 
 ## important variables
 __version__	= ylcb_config.data["meta"]["version"]
@@ -99,20 +98,21 @@ async def on_ready():
 	
 	##ANCHOR for every extension you want to load, load it
 	for extension in ext.extensions.data["load"]:
-		bot.load_extension(f"ext.{extension}")
 		l.log(f"Loading {extension}...")
-		loaded = True
-		for requirement in bot.get_cog(extension).requirements:
-			if not bot._BotBase__extensions.__contains__(f"ext.{requirement}"):
+		loadable = True
+		for requirement in Config(f"ext/{extension}.json").data["requirements"]:
+			if not bot._BotBase__extensions.__contains__(f"ext.{requirement}") and requirement != "":
 				try: bot.load_extension(f"ext.{requirement}")
 				except Exception as e: 
 					l.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}", l.ERR)
 					l.log(e,l.ERR)
 					bot.remove_cog(f"ext.{extension}")
-					loaded = False
+					loadable = False
 				else: l.log(f"Loaded requirement {requirement}")
 			else: l.log(f"Requirement {requirement} met")
-		if loaded: l.log(f"Loaded {extension}")
+		if loadable:
+			bot.load_extension(f"ext.{extension}")
+			l.log(f"Loaded {extension}")
 	l.log("YLCB logged in")
 
 
@@ -161,7 +161,7 @@ async def dev(self, ctx, _user: discord.Member = None):
 	"""Add a developer to the team"""
 	#global ylcb_config
 	l.log(ctx)
-	if not utilities.dev(ctx.author):
+	if not u.dev(ctx.author):
 		await ctx.send(f"{ctx.author.mention}, only developers can use this command.")
 		return
 	if not _user:
@@ -181,7 +181,7 @@ async def dev(self, ctx, _user: discord.Member = None):
 @bot.command()
 async def stop(ctx):
 	"""Safely  the bot"""
-	if not l.dev(ctx.author):
+	if not u.dev(ctx.author):
 		await ctx.send(f"{ctx.author.mention}, only developers can use this command.")
 		return
 	

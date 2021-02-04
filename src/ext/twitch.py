@@ -13,13 +13,9 @@ class twitch(Extension):
 	"""Twitch Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
 		"""Twitch(bot)"""
-		super().__init__(
-			bot,
-			"ext.twitch",
-			requirements=	{"database"},
-			config=			utils.Config(f"exts/twitch.json")
-		)
-		self.db = bot.get_cog("database").db
+		super().__init__(bot, "ext.twitch")
+		try: self.db = bot.get_cog("database").db
+		except: l.log("Database requirement not met")
 		self.printer.start()
 	
 	
@@ -52,14 +48,10 @@ class twitch(Extension):
 		await _user.add_roles(guild.get_role(ylcb_config.data["discord"]["streamer_role_id"]))
 		##ANCHOR layout of the database
 		self.db.execute(
-			"INSERT INTO Users VALUES (:username,:id,:d_id,:json,:bal,:items)", 
+			"UPDATE Users SET username=:user WHERE discord=:d_id",
 			{
-				"username": _username,
-				"id": None,
+				"user": _username,
 				"d_id": _user.id,
-				"json":"{}",
-				"bal": 100,
-				"items": "{}"
 			}
 		)
 		self.db.commit()
@@ -94,13 +86,16 @@ class twitch(Extension):
 			discord_id = streamer[2]
 			response = streamer[3]
 			
+			if not username:
+				l.log(f"\tUser with discord id {discord_id} does not have a twitch account active", l.WRN)
+				continue
+			l.log(f"\tChecking if {username} is live...")
+			
 			headers = {
 				"User-Agent": "Your user agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36 OPR/63.0.3368.51 (Edition beta)",
 				"Client-ID": secrets.data["twitch_client_id"],
 				"Authorization": f"Bearer {secrets.data['twitch_access_token']}"
 			}
-			
-			l.log(f"\tChecking if {username} is live...")
 			
 			r = requests.get(f"https://api.twitch.tv/helix/streams?user_login={username}", headers=headers)
 			try: streamData = r.json()["data"][0]

@@ -1,0 +1,4 @@
+{
+	"enable_custom_links": true,
+	"requirements": ["database"]
+}

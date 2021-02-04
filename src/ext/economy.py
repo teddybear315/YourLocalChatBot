@@ -11,12 +11,8 @@ class economy(Extension):
 	"""Economy Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
 		"""Economy(bot)"""
-		super().__init__(
-			bot,
-			"ext.economy",
-			requirements={"database"}
-		)
-		
+		super().__init__(bot, "ext.economy")
+		self.requirements = self.config.data["requirements"]
 		self.db = bot.get_cog("database").db
 	
 	
@@ -39,9 +35,10 @@ class economy(Extension):
 	
 	
 	@commands.command(name="balance")
-	async def balance(self,ctx):
+	async def balance(self,ctx, user: discord.Member = None):
 		l.log(ctx)
-		points = self.get_bal_from_d_id(ctx.author.id)
+		if not user: user = ctx.author
+		points = self.get_bal_from_d_id(user.id)
 		embed_dict = {
 			"title":"Bank",
 			"type": "rich",
@@ -51,8 +48,8 @@ class economy(Extension):
 				{"name": "Balance", "value": "$"+str(points)}
 			],
 			"author": {
-				"name": ctx.author.name,
-				"icon_url": str(ctx.author.avatar_url)
+				"name": user.name,
+				"icon_url": str(user.avatar_url)
 			}
 		}
 		embed = discord.Embed.from_dict(embed_dict)
@@ -93,6 +90,10 @@ class economy(Extension):
 				l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: ACCEPTED,PAID")
 			elif str(reaction.emoji) == "❎" and user == ctx.author:
 				await msg.delete()
+				await ctx.delete()
+				snd_bal = self.get_bal_from_d_id(ctx.author.id)
+				self.set_balance_from_d_id(snd_bal+amount, ctx.author.id)
+				l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: CANCELED")
 			elif str(reaction.emoji) == "❎":
 				embed_dict["title"] = "Check [DECLINED]"
 				embed_dict["color"] = 0xff0000
@@ -100,7 +101,7 @@ class economy(Extension):
 				snd_bal = self.get_bal_from_d_id(ctx.author.id)
 				self.set_balance_from_d_id(snd_bal+amount, ctx.author.id)
 		else:
-			l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: DECLINED")
+			l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{payee.name}#{payee.discriminator} | Status: BANK DECLINED")
 			await ctx.send(f"{ctx.author.mention}, you only have ${self.get_bal_from_d_id(ctx.author.id)}")
 		embed_dict["timestamp"] = datetime.datetime.now().isoformat()
 		await msg.edit(content=None, embed=discord.Embed.from_dict(embed_dict))
@@ -141,12 +142,16 @@ class economy(Extension):
 				l.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: ACCEPTED,PAID")
 			elif str(reaction.emoji) == "❎" and user == ctx.author:
 				await msg.delete()
+				await ctx.delete()
+				snd_bal = self.get_bal_from_d_id(sender.id)
+				self.set_balance_from_d_id(snd_bal+amount, sender.id)
+				l.log(f"Check: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{sender.name}#{sender.discriminator} | Status: CANCELED")
 			elif str(reaction.emoji) == "❎":
 				embed_dict["title"] = "Money Request [DECLINED]"
 				embed_dict["color"] = 0xff0000
 				l.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: DECLINED,REFUNDED")
 				snd_bal = self.get_bal_from_d_id(sender.id)
-				self.set_balance_from_d_id(snd_bal+amount, ctx.author.id)
+				self.set_balance_from_d_id(snd_bal+amount, sender.id)
 		else:
 			l.log(f"Money Request: {ctx.author.name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.name}#{sender.discriminator} | Status: DECLINED")
 			await ctx.send(f"{ctx.author.mention}, you only have ${self.get_bal_from_d_id(ctx.author.id)}")

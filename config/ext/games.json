@@ -1,5 +1,6 @@
 {
 	"enabled": true,
+	"requirements": ["database", "economy"],
 	"games": {
 		"blackjack": {
 			"enabled": true,
