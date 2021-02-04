@@ -34,8 +34,10 @@ class database(Extension):
 	
 	
 	@commands.command(name="new")
-	async def new_member_in_db(self, ctx):
+	async def new_member_in_db(self, ctx, user: discord.Member=None):
 		l.log(ctx)
+		
+		if not user: user = ctx.author
 		if self.db.cursor().execute("SELECT * FROM Users WHERE discord_id=:d_id", {"d_id": ctx.author.id}).fetchone():
 			await ctx.send(f"{ctx.author.mention}, you're already in the database")
 			return
@@ -44,7 +46,7 @@ class database(Extension):
 			{
 				"username": None,
 				"id": None,
-				"d_id": ctx.author.id,
+				"d_id": user.id,
 				"json": "{}",
 				"bal": 100,
 				"inventory": "{}"

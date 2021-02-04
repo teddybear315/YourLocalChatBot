@@ -48,7 +48,7 @@ class twitch(Extension):
 		await _user.add_roles(guild.get_role(ylcb_config.data["discord"]["streamer_role_id"]))
 		##ANCHOR layout of the database
 		self.db.execute(
-			"UPDATE Users SET username=:user WHERE discord=:d_id",
+			"UPDATE Users SET twitch_username=:user WHERE discord_id=:d_id",
 			{
 				"user": _username,
 				"d_id": _user.id,
