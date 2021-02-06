@@ -11,15 +11,13 @@ import ext
 from modules.utilities import ylcb_config,secrets,utilities as u, logger as l, Config
 
 ## important variables
-
 __version__	= ylcb_config.data["meta"]["version"]
 build_num	= ylcb_config.data["meta"]["build_number"]
 __authors__	= ["D Dot#5610", "_Potato_#6072"]
-__build__	= True ## not used to store build #, stores if this build is a release build
-if "--debug" in argv:
-	__build__ = False
+debugging = False ## if this is true on github an in-development version was pushed and the dev team needs to be notified
 
-if __build__:
+
+if debugging:
 	prefix = ylcb_config.data["bot"]["dev_prefix"]
 else:
 	prefix = ylcb_config.data["bot"]["prefix"]
@@ -83,7 +81,7 @@ async def on_ready():
 	del nt
 	
 	## if update detected and not debugging
-	if __version__ != secrets.data["CACHED_VERSION"] and __build__:
+	if __version__ != secrets.data["CACHED_VERSION"]:
 		secrets.data["CACHED_VERSION"] = __version__
 		secrets.data["CACHED_BUILD"] = build_num
 		## send new message and update stored message id
@@ -93,7 +91,7 @@ async def on_ready():
 		secrets.updateFile()
 		secrets = secrets.updateData()
 	## if new build detected and not debugging 
-	elif build_num != secrets.data["CACHED_BUILD"] and __build__:
+	elif build_num != secrets.data["CACHED_BUILD"]:
 		msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 		if msg.author != bot.user:
 			l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN)
@@ -156,6 +154,7 @@ async def on_message(message: discord.Message):
 
 @bot.command()
 async def version(ctx):
+	"""Tells you what version I'm running"""
 	l.log(ctx)
 	await ctx.send(f"I'm running version {__version__} build #{build_num}")
 
@@ -186,7 +185,7 @@ async def dev(self, ctx, _user: discord.Member = None):
 
 @bot.command()
 async def stop(ctx):
-	"""Safely  the bot"""
+	"""Safely stop the bot"""
 	if not u.dev(ctx.author):
 		await ctx.send(f"{ctx.author.mention}, only developers can use this command.")
 		return
@@ -198,7 +197,7 @@ async def stop(ctx):
 	exit(1)
 
 l.log("Starting script...")
-if __build__:
+if debugging:
 	l.log("Debug mode on", l.FLG)
 	bot.run(secrets.data["dev_token"])
 else:

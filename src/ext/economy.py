@@ -36,6 +36,7 @@ class economy(Extension):
 	
 	@commands.command(name="balance")
 	async def balance(self,ctx, user: discord.Member = None):
+		"""Returns your or another users balance"""
 		l.log(ctx)
 		if not user: user = ctx.author
 		points = self.get_bal_from_d_id(user.id)
@@ -58,6 +59,7 @@ class economy(Extension):
 	
 	@commands.command(name="pay")
 	async def pay(self,ctx,payee: discord.Member, amount: float = 50, *, message: str = None):
+		"""Pay another user"""
 		l.log(ctx)
 		amount = round(amount, 2)
 		if self.can_pay_amount(ctx.author, amount):
@@ -122,6 +124,7 @@ class economy(Extension):
 	
 	@commands.command(name="request")
 	async def request(self,ctx,sender: discord.Member, amount: float = 50, *, message: str = None):
+		"""Request money from another user"""
 		l.log(ctx)
 		if self.can_pay_amount(sender, amount):
 			l.log(f"Money Request: {ctx.author.display_name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.display_name}#{sender.discriminator} | Status: APPROVED,PENDING")
