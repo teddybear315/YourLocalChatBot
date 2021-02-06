@@ -100,16 +100,18 @@ async def on_ready():
 	for extension in ext.extensions.data["load"]:
 		l.log(f"Loading {extension}...")
 		loadable = True
-		for requirement in Config(f"ext/{extension}.json").data["requirements"]:
-			if not bot._BotBase__extensions.__contains__(f"ext.{requirement}") and requirement != "":
-				try: bot.load_extension(f"ext.{requirement}")
-				except Exception as e: 
-					l.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}", l.ERR)
-					l.log(e,l.ERR)
-					bot.remove_cog(f"ext.{extension}")
-					loadable = False
-				else: l.log(f"Loaded requirement {requirement}")
-			else: l.log(f"Requirement {requirement} met")
+		try: ## Try catch allows you to skip setting up a requirements value if no requirement is needed
+			for requirement in Config(f"ext/{extension}.json").data["requirements"]:
+				if not bot._BotBase__extensions.__contains__(f"ext.{requirement}") and requirement != "":
+					try: bot.load_extension(f"ext.{requirement}")
+					except Exception as e: 
+						l.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}", l.ERR)
+						l.log(e,l.ERR)
+						bot.remove_cog(f"ext.{extension}")
+						loadable = False
+					else: l.log(f"Loaded requirement {requirement}")
+				else: l.log(f"Requirement {requirement} met")
+		except: pass
 		if loadable:
 			bot.load_extension(f"ext.{extension}")
 			l.log(f"Loaded {extension}")

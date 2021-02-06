@@ -36,16 +36,8 @@ class Logger:
 	FLG = 5
 	
 	
-	def __init__(self):
-		"""Logger()"""
-		ts = str(datetime.datetime.now()).replace(':', '-')
-		self.log_file_path = f"logs/{ts}.log"
-		if __debug__: self.log_file_path = f"logs/DEBUG {ts}.log"
-		log_file = open(self.log_file_path, "a+")
-		log_file.close()
-	
-	
-	def log(self, msg, lvl = LOG):
+	@staticmethod
+	def log(msg, lvl = LOG):
 		"""Decent logging system"""
 		timestamp = str(datetime.datetime.now().isoformat(timespec='seconds')).replace('T', ' ')
 		
@@ -53,27 +45,23 @@ class Logger:
 		color = "white"
 		
 		if type(msg) is Context:
-			logString = f"[{prefix}] {timestamp}: {msg.command.name} command ran by {msg.author.display_name}#{msg.author.discriminator}"
-			lvl = self.CMD
-		else: logString = f"[{prefix}] {timestamp}: {msg}"
+			lvl = Logger.CMD
+			msg = f"{msg.command.name} command ran by {msg.author.display_name}#{msg.author.discriminator}"
 		
-		if lvl == self.WRN:
+		if lvl == Logger.WRN:
 			prefix = "WRN"
 			color = "yellow"
-		elif lvl == self.ERR:
+		elif lvl == Logger.ERR:
 			prefix = "ERR"
 			color = "red"
-		elif lvl == self.CMD:
+		elif lvl == Logger.CMD:
 			prefix = "CMD"
 			color = "green"
-		elif lvl == self.FLG:
+		elif lvl == Logger.FLG:
 			prefix = "FLG"
 			color = "magenta"
 		
-		cprint(logString, color=color)
-		log_file = open(self.log_file_path, "a+")
-		log_file.write(logString + "\n")
-		log_file.close()
+		cprint(f"[{prefix}] {timestamp}: {msg}", color=color)
 
 
 class Utilities:

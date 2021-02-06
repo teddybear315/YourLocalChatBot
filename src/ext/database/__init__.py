@@ -17,20 +17,25 @@ class database(Extension):
 		self.db: sqlite3.Connection	= sqlite3.connect('src/ext/database/main.db')
 	
 	
+	def add_new_user(self, user: discord.Member):
+		params: dict = {}
+		values_str = ""
+		i = 1
+		
+		for item in self.config.data["columns"]:
+			params[item["name"]] = item["default"]
+			values_str += f":{item['name']},"
+			i += 1
+		values_str = values_str[:-1]
+		params["discord_id"] = user.id
+		
+		self.db.execute(f"INSERT INTO Users VALUES ({values_str})", params)
+		self.db.commit()
+	
+	
 	@commands.Cog.listener()
 	async def on_member_join(self, user: discord.Member):
-		self.db.execute(
-			"INSERT INTO Users VALUES (:username,:id,:d_id,:json,:bal,:inventory)", 
-			{
-				"username": None,
-				"id": None,
-				"d_id": user.id,
-				"json": "{}",
-				"bal": 100,
-				"inventory": "{}"
-			}
-		)
-		self.db.commit()
+		self.add_new_user(user)
 	
 	
 	@commands.command(name="new")
@@ -38,21 +43,12 @@ class database(Extension):
 		l.log(ctx)
 		
 		if not user: user = ctx.author
-		if self.db.cursor().execute("SELECT * FROM Users WHERE discord_id=:d_id", {"d_id": ctx.author.id}).fetchone():
-			await ctx.send(f"{ctx.author.mention}, you're already in the database")
+		if self.db.cursor().execute("SELECT * FROM Users WHERE discord_id=:d_id", {"d_id": user.id}).fetchone():
+			await ctx.send(f"{ctx.author.mention}, user already in the database")
 			return
-		self.db.execute(
-			"INSERT INTO Users VALUES (:username,:id,:d_id,:json,:bal,:inventory)", 
-			{
-				"username": None,
-				"id": None,
-				"d_id": user.id,
-				"json": "{}",
-				"bal": 100,
-				"inventory": "{}"
-			}
-		)
-		self.db.commit()
+		try: self.add_new_user(user)
+		except: await ctx.user(f"{ctx.author.mention}, error occurred, please check ")
+		else: await ctx.user(f"{ctx.author.mention}, user successfully added")
 
 
 def setup(bot):
