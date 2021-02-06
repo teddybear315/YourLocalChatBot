@@ -4,7 +4,6 @@ from discord.ext.commands import errors
 from discord.ext.commands import Cog, Bot
 from modules.utilities import Config
 
-
 extensions = Config("extensions.json")
 
 

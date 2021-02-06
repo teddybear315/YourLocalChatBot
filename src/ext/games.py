@@ -16,15 +16,15 @@ class games(Extension):
 		"""Games(bot)"""
 		super().__init__(bot, "ext.games")
 		self.econ = bot.get_cog("economy")
-		self.printer.start()
+		self.airdrop_spawner.start()
 	
 	
 	def cog_unload(self):
-		self.printer.cancel()
+		self.airdrop_spawner.cancel()
 	
 	
 	@tasks.loop(hours=1)
-	async def printer(self):
+	async def airdrop_spawner(self):
 		return
 		chance = random.randint(1,100)
 		if chance <= 50:
@@ -65,8 +65,8 @@ class games(Extension):
 			await msg.edit(embed=embed)
 	
 	
-	@printer.before_loop
-	async def before_printer(self):
+	@airdrop_spawner.before_loop
+	async def airdrop_spawner(self):
 		await self.bot.wait_until_ready()
 	
 	

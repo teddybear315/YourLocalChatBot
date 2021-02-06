@@ -6,7 +6,6 @@ from sys import argv
 
 class Config:
 	"""Config class"""
-	
 	def __init__(self, path: str = "config.json"):
 		"""Config()"""
 		self.path = f"config/{path}"

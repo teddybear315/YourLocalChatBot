@@ -10,17 +10,17 @@ import datetime
 
 
 class twitch(Extension):
-	"""Twitch Extension - ylcb-devs"""
+	"""Twitch Integration Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
 		"""Twitch(bot)"""
 		super().__init__(bot, "ext.twitch")
 		try: self.db = bot.get_cog("database").db
 		except: l.log("Database requirement not met")
-		self.printer.start()
+		self.checker.start()
 	
 	
 	def cog_unload(self):
-		self.printer.cancel()
+		self.checker.cancel()
 	
 	
 	""" TODO 
@@ -29,7 +29,7 @@ class twitch(Extension):
 	"""
 	@commands.command(name="streamer")
 	async def streamer(self, ctx: Context, _user: discord.Member = None, _username: str = None) -> None:
-		"""Adds twitch username to the database"""
+		"""Adds twitch username to a specified user in the database"""
 		l.log(ctx)
 		if not u.admin(ctx.author):
 			await ctx.send(f"{ctx.author.mention}, only admins can use this command.")
@@ -46,7 +46,6 @@ class twitch(Extension):
 		
 		guild = await self.bot.fetch_guild(ylcb_config.data["discord"]["guild_id"])
 		await _user.add_roles(guild.get_role(ylcb_config.data["discord"]["streamer_role_id"]))
-		##ANCHOR layout of the database
 		self.db.execute(
 			"UPDATE Users SET twitch_username=:user WHERE discord_id=:d_id",
 			{
@@ -55,17 +54,12 @@ class twitch(Extension):
 			}
 		)
 		self.db.commit()
-		# "twitch_username": _username,	#str
-		# "message_id": None,			#int
-		# "discord_id": _user.id,		#int
-		# "response": {},				#json
-		# "balance": 100,				#int
 		await ctx.send(f"{_user.mention}, {ctx.author.mention} has made you a streamer!")
 	
 	
 	@commands.command()
 	async def raid(self, ctx, twitchChannel = None):
-		"""Gives specified use a shoutout"""
+		"""Gives specified user a shoutout"""
 		l.log(ctx)
 		if not u.admin(ctx.author):
 			await ctx.send(f"{ctx.author.mention}, only admins can use this command.")
@@ -75,12 +69,11 @@ class twitch(Extension):
 			return
 		
 		await ctx.send(f"@everyone we're raiding https://twitch.tv/{twitchChannel}")
-
 	
 	
-	##ANCHOR check if streamer is live
 	async def check(self, streamerChannel: discord.TextChannel) -> bool:
-		for streamer in self.db.cursor().execute("SELECT * FROM Users").fetchall(): #ANCHOR db entry
+		"""Checks if a streamer is live and if so announces it"""
+		for streamer in self.db.cursor().execute("SELECT * FROM Users").fetchall():
 			username = streamer[0]
 			message_id = streamer[1]
 			discord_id = streamer[2]
@@ -101,7 +94,6 @@ class twitch(Extension):
 			try: streamData = r.json()["data"][0]
 			except: streamData = r.json()["data"]
 			r.close()
-			
 			
 			if streamData:
 				r = requests.get(f"https://api.twitch.tv/helix/users?id={streamData['user_id']}", headers=headers)
@@ -165,14 +157,14 @@ class twitch(Extension):
 	
 	
 	@tasks.loop(seconds=60)
-	async def printer(self):
+	async def checker(self):
 		l.log("Checking twitch...")
 		if await self.check(self.bot.get_channel(utils.ylcb_config.data["discord"]["announcement_channel_id"])):
 			l.log("Check Successful")
 	
 	
-	@printer.before_loop
-	async def before_printer(self):
+	@checker.before_loop
+	async def before_checker(self):
 		await self.bot.wait_until_ready()
 
 
