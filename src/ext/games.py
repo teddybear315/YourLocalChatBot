@@ -66,7 +66,7 @@ class games(Extension):
 	
 	
 	@airdrop_spawner.before_loop
-	async def airdrop_spawner(self):
+	async def before_airdrop_spawner(self):
 		await self.bot.wait_until_ready()
 	
 	

@@ -136,14 +136,14 @@ class twitch(Extension):
 				
 				if not message_id:
 					l.log(f"\t\t{username} is now live, announcing stream...")
-					if not __debug__:msg = await streamerChannel.send(f"@everyone {user.mention} is live!", embed=embed)
+					if not __build__:msg = await streamerChannel.send(f"@everyone {user.mention} is live!", embed=embed)
 					else			:msg = await streamerChannel.send(f"{user.mention} is live!", embed=embed)
 					self.db.execute("UPDATE Users SET message_id=:id WHERE twitch_username=:username", {"id":msg.id,"username":username})
 					self.db.commit()
 				elif response != streamData:
 					msg = await streamerChannel.fetch_message(streamer[1])
 					l.log(f"\t\tUpdating {username}\'s live message...")
-					if not __debug__:msg = await msg.edit(content=f"@everyone {user.mention} is live!", embed=embed)
+					if not __build__:msg = await msg.edit(content=f"@everyone {user.mention} is live!", embed=embed)
 					else			:msg = await msg.edit(content=f"{user.mention} is live!", embed=embed)
 					self.db.execute("UPDATE Users SET response=:json WHERE twitch_username=:username", {"json":json.dumps(streamData),"username":username})
 					self.db.commit()

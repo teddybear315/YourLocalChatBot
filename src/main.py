@@ -11,11 +11,15 @@ import ext
 from modules.utilities import ylcb_config,secrets,utilities as u, logger as l, Config
 
 ## important variables
-__version__	= ylcb_config.data["meta"]["version"]
-__build__	= ylcb_config.data["meta"]["build_number"]
-__authors__	= ["D Dot#5610", "_Potato_#6072"]
 
-if __debug__:
+__version__	= ylcb_config.data["meta"]["version"]
+build_num	= ylcb_config.data["meta"]["build_number"]
+__authors__	= ["D Dot#5610", "_Potato_#6072"]
+__build__	= True ## not used to store build #, stores if in debug mode 
+if "--debug" in argv:
+	__build__ = False
+
+if __build__:
 	prefix = ylcb_config.data["bot"]["dev_prefix"]
 else:
 	prefix = ylcb_config.data["bot"]["prefix"]
@@ -46,7 +50,7 @@ announcementChannel	: discord.TextChannel
 @bot.event
 async def on_ready():
 	l.log("Bot ready...")
-	l.log(f"Running version: {__version__}b{__build__}")
+	l.log(f"Running version: {__version__}b{build_num}")
 	
 	global guild
 	global secrets
@@ -75,13 +79,13 @@ async def on_ready():
 	embed = discord.Embed(title=f"Local Chat Bot v{__version__}", color=0xff6000)
 	embed.set_author(name=f"Your Local Chat Bot", icon_url=bot.user.avatar_url)
 	embed.add_field(name="Changelog", value=f"\t- {nt.join(ylcb_config.data['meta']['changelog'])}")
-	embed.set_footer(text=f"Build #{__build__}")
+	embed.set_footer(text=f"Build #{build_num}")
 	del nt
 	
 	## if update detected and not debugging
-	if __version__ != secrets.data["CACHED_VERSION"] and not __debug__:
+	if __version__ != secrets.data["CACHED_VERSION"] and not __build__:
 		secrets.data["CACHED_VERSION"] = __version__
-		secrets.data["CACHED_BUILD"] = __build__
+		secrets.data["CACHED_BUILD"] = build_num
 		## send new message and update stored message id
 		msg = await changelogChannel.send(embed=embed)
 		secrets.data["CHANGELOG_MESSAGE_ID"] = msg.id
@@ -89,7 +93,7 @@ async def on_ready():
 		secrets.updateFile()
 		secrets = secrets.updateData()
 	## if new build detected and not debugging 
-	elif __build__ != secrets.data["CACHED_BUILD"] and not __debug__:
+	elif build_num != secrets.data["CACHED_BUILD"] and not __build__:
 		msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 		if msg.author != bot.user:
 			l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN)
@@ -153,7 +157,7 @@ async def on_message(message: discord.Message):
 @bot.command()
 async def version(ctx):
 	l.log(ctx)
-	await ctx.send(f"I'm running version {__version__} build #{__build__}")
+	await ctx.send(f"I'm running version {__version__} build #{build_num}")
 
 
 ## dev level commands
@@ -194,7 +198,7 @@ async def stop(ctx):
 	exit(1)
 
 l.log("Starting script...")
-if __debug__:
+if __build__:
 	l.log("Debug mode on", l.FLG)
 	bot.run(secrets.data["dev_token"])
 else:
