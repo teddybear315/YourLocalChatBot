@@ -10,16 +10,12 @@
 	],
 	"meta": {
 		"version": "1.0.0",
-		"build_number": 1,
+		"build_number": 3,
 		"changelog": [
 			"Added better extension support",
-			"\t- you can now drag, drop, and select what extensions you wanna use",
-			"Temporarily removed database and replaced with a json file",
-			"\t- classic i know",
-			"Added file output to logger",
-			"\t- use `--nolog to disable file output`",
+			"- you can now drag, drop, and select what extensions you wanna use",
 			"Added FLG option to logger",
-			"\t- changes log prefix and color to flag outputs as important",
+			"- changes log prefix and color to flag outputs as important",
 			"Added Config class in modules.utilities",
 			"Added database extension",
 			"Added extension requirements"

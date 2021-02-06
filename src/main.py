@@ -198,7 +198,7 @@ async def stop(ctx):
 	exit(1)
 
 l.log("Starting script...")
-if not __build__:
+if __build__:
 	l.log("Debug mode on", l.FLG)
 	bot.run(secrets.data["dev_token"])
 else:
