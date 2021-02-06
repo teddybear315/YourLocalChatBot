@@ -15,7 +15,7 @@ from modules.utilities import ylcb_config,secrets,utilities as u, logger as l, C
 __version__	= ylcb_config.data["meta"]["version"]
 build_num	= ylcb_config.data["meta"]["build_number"]
 __authors__	= ["D Dot#5610", "_Potato_#6072"]
-__build__	= True ## not used to store build #, stores if in debug mode 
+__build__	= True ## not used to store build #, stores if this build is a release build
 if "--debug" in argv:
 	__build__ = False
 
@@ -83,7 +83,7 @@ async def on_ready():
 	del nt
 	
 	## if update detected and not debugging
-	if __version__ != secrets.data["CACHED_VERSION"] and not __build__:
+	if __version__ != secrets.data["CACHED_VERSION"] and __build__:
 		secrets.data["CACHED_VERSION"] = __version__
 		secrets.data["CACHED_BUILD"] = build_num
 		## send new message and update stored message id
@@ -93,7 +93,7 @@ async def on_ready():
 		secrets.updateFile()
 		secrets = secrets.updateData()
 	## if new build detected and not debugging 
-	elif build_num != secrets.data["CACHED_BUILD"] and not __build__:
+	elif build_num != secrets.data["CACHED_BUILD"] and __build__:
 		msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 		if msg.author != bot.user:
 			l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN)
@@ -198,7 +198,7 @@ async def stop(ctx):
 	exit(1)
 
 l.log("Starting script...")
-if __build__:
+if not __build__:
 	l.log("Debug mode on", l.FLG)
 	bot.run(secrets.data["dev_token"])
 else:
