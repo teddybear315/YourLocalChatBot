@@ -53,7 +53,7 @@ class Logger:
 		color = "white"
 		
 		if type(msg) is Context:
-			logString = f"[{prefix}] {timestamp}: {msg.command.name} command ran by {msg.author.name}#{msg.author.discriminator}"
+			logString = f"[{prefix}] {timestamp}: {msg.command.name} command ran by {msg.author.display_name}#{msg.author.discriminator}"
 			lvl = self.CMD
 		else: logString = f"[{prefix}] {timestamp}: {msg}"
 		

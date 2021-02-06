@@ -38,7 +38,7 @@ class games(Extension):
 					{"name": "Money:", "value": "$"+str(money)}
 				],
 				"author": {
-					"name": self.bot.user.name,
+					"name": self.bot.user.display_name,
 					"icon_url": str(self.bot.user.avatar_url)
 				}
 			}
@@ -49,7 +49,7 @@ class games(Extension):
 			await msg.add_reaction("🛄")
 			def check(reaction: discord.Reaction, user: discord.Member): return user != self.bot.user and str(reaction.emoji) == "🛄"
 			reaction, user = await self.bot.wait_for("reaction_add", check=check) #(":baggage_claim:")
-			l.log(f"{user.name}#{user.discriminator} claimed an airdrop worth ${money}")
+			l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}")
 			bal = self.econ.get_bal_from_d_id(user.id)
 			self.econ.set_balance_from_d_id(bal + money, user.id)
 			
@@ -57,7 +57,7 @@ class games(Extension):
 			embed_dict["timestamp"] = datetime.datetime.now().isoformat()
 			embed_dict["color"] = 0x00ff00
 			embed_dict["author"] = {
-				"name": user.name,
+				"name": user.display_name,
 				"icon_url": str(user.avatar_url)
 			}
 			
@@ -70,7 +70,8 @@ class games(Extension):
 		await self.bot.wait_until_ready()
 	
 	
-	async def can_user_play(self, ctx, _cfg, bet, points):
+	async def can_user_play(self, ctx, _cfg: dict, bet: float, points: float):
+		bet = round(bet, 2)
 		if not self.config.data["enabled"] or not _cfg["enabled"]:
 			await ctx.send(f"{ctx.author.mention}, this game has been disabled by an admin.")
 			return False
@@ -103,7 +104,7 @@ class games(Extension):
 		## set points again because can_user_play edits
 		points = self.econ.get_bal_from_d_id(ctx.author.id)
 		## logging the successful start of a game
-		l.log(f"{game_name} start: {ctx.author.name}#{ctx.author.discriminator} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
+		l.log(f"{game_name} start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
 	"""
 	
 	
@@ -111,6 +112,7 @@ class games(Extension):
 	async def blackjack(self, ctx, bet: float = None):
 		"""Blackjack minigame"""
 		l.log(ctx)
+		bet = round(bet, 2)
 		_cfg = self.config.data["games"]["blackjack"]
 		points = self.econ.get_bal_from_d_id(ctx.author.id)
 		## important checks needed to play the game lol
@@ -121,7 +123,7 @@ class games(Extension):
 		## set points again because can_user_play edits
 		points = self.econ.get_bal_from_d_id(ctx.author.id)
 		## logging the successful start of a bj game
-		l.log(f"Blackjack start: {ctx.author.name}#{ctx.author.discriminator} | Bet:${bet}")
+		l.log(f"Blackjack start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet}")
 		## lazy man's blackjack
 		p_score	  = random.randint(2,21)
 		cpu_score = random.randint(2,21)
@@ -148,7 +150,7 @@ class games(Extension):
 			embed_dict["title"] = f"You lost ${bet}!"
 		embed = discord.Embed.from_dict(embed_dict)
 		await ctx.send(embed=embed)
-		l.log(f"Blackjack outcome: {ctx.author.name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
+		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
 
 
 def setup(bot):

@@ -126,7 +126,7 @@ class twitch(Extension):
 						{"name": "Viewers", "value": streamData["viewer_count"], "inline": True}
 					],
 					"author": {
-						"name": user.name,
+						"name": user.display_name,
 						"icon_url": str(user.avatar_url)
 					},
 					"thumbnail": {
