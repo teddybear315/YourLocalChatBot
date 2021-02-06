@@ -81,7 +81,7 @@ async def on_ready():
 	del nt
 	
 	## if update detected and not debugging
-	if __version__ != secrets.data["CACHED_VERSION"]:
+	if __version__ != secrets.data["CACHED_VERSION"] and not debugging:
 		secrets.data["CACHED_VERSION"] = __version__
 		secrets.data["CACHED_BUILD"] = build_num
 		## send new message and update stored message id
@@ -91,7 +91,7 @@ async def on_ready():
 		secrets.updateFile()
 		secrets = secrets.updateData()
 	## if new build detected and not debugging 
-	elif build_num != secrets.data["CACHED_BUILD"]:
+	elif build_num != secrets.data["CACHED_BUILD"] and not debugging:
 		msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 		if msg.author != bot.user:
 			l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN)

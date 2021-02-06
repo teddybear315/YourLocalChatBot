@@ -25,7 +25,6 @@ class games(Extension):
 	
 	@tasks.loop(hours=1)
 	async def airdrop_spawner(self):
-		return
 		chance = random.randint(1,100)
 		if chance <= 50:
 			money = random.randint(10,1000)
