@@ -111,7 +111,7 @@ class twitch(Extension):
 				embed_dict = {
 					"title": streamData["title"],
 					"url": f"https://twitch.tv/{username}",
-					"type": "rich",
+					"type": "url",
 					"timestamp": datetime.datetime.now().isoformat(),
 					"color": 0x8000ff,
 					"fields": [
@@ -121,6 +121,11 @@ class twitch(Extension):
 					"author": {
 						"name": user.display_name,
 						"icon_url": str(user.avatar_url)
+					},
+					"thumbnail": {
+						"url": gameData["box_art_url"].format(width=390, height=519),
+						"width": 390,
+						"height": 519
 					},
 					"image": {
 						"url": streamData["thumbnail_url"].format(width=1280, height=720),
