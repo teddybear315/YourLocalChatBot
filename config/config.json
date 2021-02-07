@@ -10,7 +10,7 @@
 	],
 	"meta": {
 		"version": "1.0.0",
-		"build_number": 6,
+		"build_number": 7,
 		"changelog": [
 			"Added better extension support",
 			"- you can now drag, drop, and select what extensions you wanna use",

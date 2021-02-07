@@ -96,6 +96,7 @@ class twitch(Extension):
 			r.close()
 			
 			if streamData:
+				l.log(streamData, l.FLG)
 				r = requests.get(f"https://api.twitch.tv/helix/users?id={streamData['user_id']}", headers=headers)
 				try: userData = r.json()["data"][0]
 				except: userData = r.json()["data"]
@@ -120,11 +121,6 @@ class twitch(Extension):
 					"author": {
 						"name": user.display_name,
 						"icon_url": str(user.avatar_url)
-					},
-					"thumbnail": {
-						"url": streamData["box_art_url"].format(width=390, height=519),
-						"width": 390,
-						"height": 519
 					},
 					"image": {
 						"url": streamData["thumbnail_url"].format(width=1280, height=720),
