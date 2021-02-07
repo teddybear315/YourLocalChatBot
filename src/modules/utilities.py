@@ -8,7 +8,7 @@ class Config:
 	"""Config class"""
 	def __init__(self, path: str = "config.json"):
 		"""Config()"""
-		self.path = f"config/{path}"
+		self.path = f"./config/{path}"
 		self.data: dict
 		self.updateData()
 	

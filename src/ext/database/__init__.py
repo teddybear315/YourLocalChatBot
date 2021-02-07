@@ -14,7 +14,7 @@ class database(Extension):
 		"""Database(bot)"""
 		super().__init__(bot, "ext.database")
 		self.columns:dict = self.config.data["columns"]
-		self.db: sqlite3.Connection	= sqlite3.connect('src/ext/database/main.db')
+		self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/main.db')
 	
 	
 	def add_new_user(self, user: discord.Member):
