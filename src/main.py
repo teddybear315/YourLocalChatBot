@@ -13,7 +13,7 @@ from modules.utilities import ylcb_config,secrets,utilities as u, logger as l, C
 ## important variables
 __version__	= ylcb_config.data["meta"]["version"]
 build_num	= ylcb_config.data["meta"]["build_number"]
-__authors__	= ["D Dot#5610", "_Potato_#6072"]
+__authors__	= ["Teddy.#5610", "_Potato_#6072"]
 debugging = False ## if this is true on github an in-development version was pushed and the dev team needs to be notified
 
 
@@ -28,8 +28,7 @@ bot = Bot(
 	case_insensitive= True,
 	description		= ylcb_config.data["bot"]["description"],
 	owner_ids		= ylcb_config.data["devs"],
-	activity		= discord.Activity(
-	type			= discord.ActivityType.watching, name="some peoples streams.")
+	activity		= discord.Activity(type= discord.ActivityType.watching, name="some peoples streams.")
 )
 
 guild: discord.Guild
