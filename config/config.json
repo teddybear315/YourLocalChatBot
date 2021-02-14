@@ -9,16 +9,11 @@
 		324332386219327488
 	],
 	"meta": {
-		"version": "1.0.0",
-		"build_number": 9,
+		"version": "1.1.0",
+		"build_number": 1,
 		"changelog": [
-			"Added better extension support",
-			"- you can now drag, drop, and select what extensions you wanna use",
-			"Added FLG option to logger",
-			"- changes log prefix and color to flag outputs as important",
-			"Added Config class in modules.utilities",
-			"Added database extension",
-			"Added extension requirements"
+			"Added reload command",
+			"- reload's extension without having to reload whole bot"
 		]
 	},
 	"discord": {

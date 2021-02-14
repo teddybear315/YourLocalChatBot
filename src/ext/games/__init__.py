@@ -1,6 +1,5 @@
-import discord
-import random
-import datetime
+from ext.games.blackjack import Blackjack
+import discord,random,datetime,os
 
 import modules.utilities as utils
 
@@ -8,7 +7,6 @@ from discord.ext.commands 	import Context
 from discord.ext 			import commands, tasks
 from modules.utilities		import logger as l, utilities as u,secrets,ylcb_config
 from ext 					import Extension, database
-
 
 class games(Extension):
 	"""Games Extension - ylcb-devs"""
@@ -103,11 +101,11 @@ class games(Extension):
 		## set points again because can_user_play edits
 		points = self.econ.get_bal_from_d_id(ctx.author.id)
 		## logging the successful start of a game
-		l.log(f"{game_name} start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
+		l.log(f"{game_name} start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet} | CPU:{cpu_score}")
 	"""
 	
 	
-	@commands.command(name="blackjack")
+	@commands.command(name="21")
 	async def blackjack(self, ctx, bet: float = None):
 		"""Blackjack minigame"""
 		l.log(ctx)
@@ -124,32 +122,11 @@ class games(Extension):
 		## logging the successful start of a bj game
 		l.log(f"Blackjack start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet}")
 		## lazy man's blackjack
-		p_score	  = random.randint(2,21)
-		cpu_score = random.randint(2,21)
-		
-		embed_dict = {
-			"title":"It\'s a push!",
-			"type": "rich",
-			"timestamp": datetime.datetime.now().isoformat(),
-			"color": 0xffdd00,
-			"fields": [
-				{"name": "You scored:", "value": p_score, "inline": True},
-				{"name": "I scored:", "value": cpu_score, "inline": True}
-			]
-		}
-		multiplier = 1
-		if p_score > cpu_score:
-			multiplier = _cfg["win_multiplier"]
-			if p_score == 21: multiplier = _cfg["bj_multiplier"]
-			self.econ.set_balance_from_d_id(points + (bet*multiplier), ctx.author.id)
-			embed_dict["color"] = 0x00ff00
-			embed_dict["title"] = f"You won ${bet*multiplier}!"
-		elif cpu_score > p_score:
-			embed_dict["color"] = 0xff0000
-			embed_dict["title"] = f"You lost ${bet}!"
-		embed = discord.Embed.from_dict(embed_dict)
-		await ctx.send(embed=embed)
-		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | Multiplier:{multiplier}x | CPU:{cpu_score}")
+		bj = Blackjack()
+		await bj.game(ctx,self,bet)
+		p_score = Blackjack.total(bj.player_hand)
+		cpu_score = Blackjack.total(bj.dealer_hand)
+		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | CPU:{cpu_score}")
 
 
 def setup(bot):

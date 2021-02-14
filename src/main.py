@@ -4,7 +4,7 @@ import os
 
 from sys import argv
 from asyncio import sleep
-from discord.ext.commands import Bot
+from discord.ext.commands import Bot, ExtensionNotLoaded
 
 ## importing local modules
 import ext
@@ -157,6 +157,12 @@ async def version(ctx):
 	l.log(ctx)
 	await ctx.send(f"I'm running version {__version__} build #{build_num}")
 
+
+@bot.command(name="reload")
+async def reload_ext(ctx, ext: str):
+	"""Reloads an extension"""
+	try: await bot.reload_extension("ext."+ext)
+	except ExtensionNotLoaded: await ctx.send(f"{ctx.author.mention}, this extension does not exist")
 
 ## dev level commands
 
