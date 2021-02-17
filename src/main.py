@@ -89,16 +89,18 @@ async def on_ready():
 		## send new message and update stored message id
 		msg = await changelogChannel.send(embed=embed)
 		secrets.data["CHANGELOG_MESSAGE_ID"] = msg.id
-		## updates ylcb_config
+		## updates secrets
 		secrets.updateFile()
-		secrets = secrets.updateData()
 	## if new build detected and not debugging 
 	elif build_num != secrets.data["CACHED_BUILD"] and not debugging:
+		secrets.data["CACHED_BUILD"] = build_num
 		msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 		if msg.author != bot.user:
 			l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN, l.DISCORD)
 		else:
 			await msg.edit(embed=embed)
+		## updates secrets
+		secrets.updateFile()
 	
 	##ANCHOR for every extension you want to load, load it
 	for extension in ext.extensions.data["load"]:
