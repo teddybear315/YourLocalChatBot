@@ -7,8 +7,7 @@ from typing import Optional
 import discord
 import discord.errors
 from discord.ext import commands
-from discord.ext.commands import (Bot, Command, ExtensionAlreadyLoaded,
-                                  ExtensionNotFound, ExtensionNotLoaded)
+from discord.ext.commands import Bot, Command, ExtensionAlreadyLoaded, ExtensionNotFound, ExtensionNotLoaded
 
 ## importing local modules
 import ext
@@ -21,7 +20,6 @@ from modules.utilities import ylcb_config
 ## important variables
 __version__	= ylcb_config.data["meta"]["version"]
 build_num	= ylcb_config.data["meta"]["build_number"]
-__authors__	= ["Teddy.#5610", "_Potato_#6072"]
 
 bot = Bot(	
 	command_prefix	= prefix,

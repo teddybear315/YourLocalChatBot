@@ -10,7 +10,7 @@
 	],
 	"meta": {
 		"version": "1.2",
-		"build_number": 2,
+		"build_number": 4,
 		"changelog": [
 			"Added better help command",
 			"Updated reload command to reload cogs",
