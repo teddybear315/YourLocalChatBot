@@ -71,7 +71,7 @@ class twitch(Extension):
 			
 			headers = {
 				"User-Agent": "Your user agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36 OPR/63.0.3368.51 (Edition beta)",
-				"Client-ID": secrets.data["twitch_client_id"],
+				"Client-ID": secrets.data["twitch_id"],
 				"Authorization": f"Bearer {secrets.data['twitch_secret']}"
 				# "Authorization": f"Bearer 2gbdx6oar67tqtcmt49t3wpcgycthx"
 			}
