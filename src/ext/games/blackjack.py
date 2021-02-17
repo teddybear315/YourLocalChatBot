@@ -8,7 +8,7 @@ from modules.utilities		import logger as l
 
 class Blackjack:
 	playing = True
-	card_strs = ["🇦", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🇯", "🇶", "🇰"]
+	card_strs = ["alert a developer if you see this", "🇦", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🇯", "🇶", "🇰"]
 	
 	
 	def __init__(self, ctx: Context, parent: Extension, bet: float):
@@ -17,7 +17,7 @@ class Blackjack:
 		self.ctx = ctx
 		self.parent = parent
 		self.player = ctx.author
-		self.dealer_hand = self.deal()
+		self.dealer_hand = [1,6]
 		self.player_hand = self.deal()
 		self.boost = self.parent.bot.get_cog("items").get_boost_from_d_id(self.player.id)
 	
@@ -62,10 +62,7 @@ class Blackjack:
 					await self.update_embed(self.dealer_hand, self.player_hand)
 			elif str(payload.emoji) == "🔴":
 				self.playing = False
-				while self.total(self.dealer_hand) < 17:
-					self.hit(self.dealer_hand)
-				soft_17 = (self.card_strs[1] in self.dealer_hand and self.total(self.dealer_hand) == 17)
-				if soft_17 and self.parent.config.data["games"]["blackjack"]["hit_on_soft_17"]:
+				while self.total(self.dealer_hand) < 17 or self.s17_hit():
 					self.hit(self.dealer_hand)
 			await self.update_embed(self.dealer_hand, self.player_hand)
 			await self.msg.edit(embed=discord.Embed.from_dict(self.embed_dict))
@@ -81,6 +78,13 @@ class Blackjack:
 			hand.append(card)
 		return hand
 	
+	
+	def soft_17(self) -> bool:
+		return (1 in self.dealer_hand and self.total(self.dealer_hand) == 17)
+	
+	
+	def s17_hit(self) -> bool:
+		return (self.soft_17() and self.parent.config.data["games"]["blackjack"]["hit_on_soft_17"])
 	
 	@staticmethod
 	def total(hand: list) -> int:
