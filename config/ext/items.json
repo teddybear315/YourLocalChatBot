@@ -1,0 +1,12 @@
+{
+	"enabled": true,
+	"extension_type": 0,
+	"requirements": ["database"],
+	
+	"items": [
+		{"id":0 , "name":"null", "desc": "", "type": "", "effect": 0, "texture_url":""},
+		{"id":1 , "name":"Golden Booster", "desc": "Gives a 7.77x payout boost for 1 game", "type": "boost", "effect": 7.77, "texture_url":"https://s3.imgcdn.dev/COykH.png"},
+		{"id":2 , "name":"Silver Booster", "desc": "Gives a 3.33x payout boost for 1 game", "type": "boost", "effect": 3.33, "texture_url":"https://s3.imgcdn.dev/CO5vS.png"},
+		{"id":3 , "name":"Bronze Booster", "desc": "Gives a 1.5x payout boost for 1 game",  "type": "boost", "effect": 1.5,  "texture_url":"https://s3.imgcdn.dev/COKFC.png"}
+	]
+}

@@ -1,0 +1,12 @@
+Extensions:
+	Games:
+		☐ Betting api
+		☐ Lottery ticket
+		✔ blackjack.config hitOnSoft17: bool @done (2/17/2021, 2:53:52 PM)
+		☐ FIX https://konner.go-outsi.de/kWyl04.png
+		Hub:
+			☐ Add hub command
+			☐ Show menu of games and let user select and play game
+			☐ Return user to hub after game finishes
+			☐ Show outcome 
+

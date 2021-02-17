@@ -1,6 +1,6 @@
 import datetime, json, discord
 
-from discord.ext.commands import Context
+from discord.ext.commands import Context, check
 from neotermcolor import cprint
 from sys import argv
 
@@ -13,7 +13,7 @@ class Config:
 		self.updateData()
 	
 	
-	def updateFile(self) -> None:
+	def updateFile(self):
 		"""Updates config file with current data"""
 		with open(self.path, "w+") as f:
 			f.write(json.dumps(self.data))
@@ -28,15 +28,20 @@ class Config:
 
 class Logger:
 	"""Logger class"""
+	# Logging Levels
 	CMD = 1
 	WRN = 2
 	ERR = 3
 	LOG = 4
 	FLG = 5
 	
+	# Input Channels
+	SYSTEM	= 0
+	DISCORD	= 1
+	TWITCH	= 2
 	
 	@staticmethod
-	def log(msg, lvl = LOG):
+	def log(msg, lvl = LOG, channel = SYSTEM):
 		"""Decent logging system"""
 		timestamp = str(datetime.datetime.now().isoformat(timespec='seconds')).replace('T', ' ')
 		
@@ -60,16 +65,25 @@ class Logger:
 			prefix = "FLG"
 			color = "magenta"
 		
-		cprint(f"[{prefix}] {timestamp}: {msg}", color=color)
+		cprint(f"[{channel}][{prefix}] {timestamp}: {msg}", color=color)
 
 
 class Utilities:
 	"""Utilities class"""
 	@staticmethod
-	def admin(author: discord.Member) -> bool:
+	def is_admin() -> bool:
 		"""Returns if user is an admin"""
-		if author.guild_permissions.administrator: return True
-		return False
+		async def predicate(ctx):
+			return ctx.author.guild_permissions.administrator
+		return check(predicate)
+	
+	
+	@staticmethod
+	def is_dev() -> bool:
+		"""Returns if user is one of my developers"""
+		async def predicate(ctx):
+			return ctx.author.id in ylcb_config.data["devs"]
+		return check(predicate)
 	
 	
 	@staticmethod
@@ -78,16 +92,16 @@ class Utilities:
 		for role in user.roles:
 			if role.id == ylcb_config.data["discord"]["streamer_role_id"]: return True
 		return False
-	
-	
-	@staticmethod
-	def dev(author: discord.Member) -> bool:
-		"""Returns if user is a developer"""
-		if author.id in ylcb_config.data["devs"]: return True
-		return False
 
 
 ylcb_config = Config("config.json")
 secrets = Config("secrets.json")
 utilities = Utilities()
 logger = Logger()
+
+
+debugging = ("--debug" in argv)
+if debugging:
+	prefix = ylcb_config.data["bot"]["dev_prefix"]
+else:
+	prefix = ylcb_config.data["bot"]["prefix"]

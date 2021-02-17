@@ -3,6 +3,7 @@
 	"load": [
 		"database",
 		"economy",
+		"items",
 		"games",
 		"twitch"
 	]

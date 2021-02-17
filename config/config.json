@@ -9,11 +9,16 @@
 		324332386219327488
 	],
 	"meta": {
-		"version": "1.1.0",
+		"version": "1.2",
 		"build_number": 1,
 		"changelog": [
-			"Added reload command",
-			"- reload's extension without having to reload whole bot"
+			"Added better help command",
+			"Updated reload command to reload cogs",
+			"Remove twitch chat bot integration",
+			"Moved debugging and prefix variables to modules/utilities.py",
+			"\t- Allows for extensions to import, use, and change them",
+			"modules/utilities.Utilities methods changed to decorators to better work with the Discord API",
+			"***IMPORTANT*** COG UPDATES WILL NO LONGER SHOW IN THIS MESSAGE, ONLY UPDATES TO modules/ AND main.py"
 		]
 	},
 	"discord": {

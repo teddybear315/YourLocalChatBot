@@ -1,42 +1,38 @@
-aiohttp==3.7.3
-arrow==0.17.0
-async-timeout==3.0.1
-attrs==20.3.0
-autopep8==1.5.4
-binaryornot==0.4.4
-certifi==2019.11.28
-chardet==3.0.4
-click==7.1.2
-cookiecutter==1.7.2
-discord==1.0.1
-discord.py==1.6.0
-h11==0.12.0
-httpcore==0.12.3
-httpx==0.16.1
-idna==2.7
-importlib-resources==4.1.1
-Jinja2==2.11.3
-jinja2-time==0.2.0
-MarkupSafe==1.1.1
-multidict==4.7.5
-mysql==0.0.2
-mysqlclient==2.0.3
-neotermcolor==2.0.8
-pkginfo==1.6.1
-poyo==0.5.0
-pycodestyle==2.6.0
-pymongo==3.11.2
-python-dateutil==2.8.1
-python-slugify==4.0.1
-requests==2.25.1
-rfc3986==1.4.0
-six==1.15.0
-sniffio==1.2.0
-termcolor==1.1.0
-text-unidecode==1.3
-toml==0.10.2
-typing-extensions==3.7.4.3
-urllib3==1.26.2
-websockets==6.0
-yarl==1.4.2
-zstandard==0.15.1
+azoo == 1.3.1
+cloudsteak == 0.0.0.10
+component-extraction-api == 0.0.1
+discord.py == 1.6.0
+git-bundle-plus == 0.9.1
+ib == 0.8.0
+irclogparser == 1.0.6
+isocon == 0.3.3
+isonclust == 0.0.6
+isoncorrect == 0.0.7
+kodai-modules == 0.1.0
+lockdoor == 2.2.4
+modules-for-mozia == 1.1.0
+mozia-modules == 1.8.3
+neotermcolor == 2.0.8
+ngspeciesid == 0.1.1.1
+openedoo == 1.1.0.19
+opsworks-cli == 0.5.2
+oswald == 0.0.4
+palcole == 0.0.1
+passgify == 0.2.3
+ptysh == 0.1.0
+pytenvis == 0.12
+python-publish == 1.0.0
+requests == 2.25.1
+rst2html5 == 1.10.6
+shinken == 2.4.3
+snptoolkit == 2.2.8
+svg42pdf == 0.2.2
+syrahsearch == 0.0.0.2.2
+tonnyma-utils == 0.0.2
+torbot == 1.2
+tql-python == 0.0.1560759418
+vulnx == 1.6
+weaviate-cli == 2.1.0
+ydh-yourname == 0.0.1
+yl-yourname == 0.0.1
+yxj-yourname == 0.0.1

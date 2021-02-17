@@ -1,27 +1,27 @@
-import discord, discord.errors
 import json
 import os
-
-from sys import argv
 from asyncio import sleep
-from discord.ext.commands import Bot, ExtensionNotLoaded
+from sys import argv
+from typing import Optional
+
+import discord
+import discord.errors
+from discord.ext import commands
+from discord.ext.commands import (Bot, Command, ExtensionAlreadyLoaded,
+                                  ExtensionNotFound, ExtensionNotLoaded)
 
 ## importing local modules
 import ext
-from modules.utilities import ylcb_config,secrets,utilities as u, logger as l, Config
+from modules.utilities import Config, debugging
+from modules.utilities import logger as l
+from modules.utilities import prefix, secrets
+from modules.utilities import utilities as u
+from modules.utilities import ylcb_config
 
 ## important variables
 __version__	= ylcb_config.data["meta"]["version"]
 build_num	= ylcb_config.data["meta"]["build_number"]
 __authors__	= ["Teddy.#5610", "_Potato_#6072"]
-debugging = False ## if this is true on github an in-development version was pushed and the dev team needs to be notified
-
-
-if debugging:
-	prefix = ylcb_config.data["bot"]["dev_prefix"]
-else:
-	prefix = ylcb_config.data["bot"]["prefix"]
-
 
 bot = Bot(	
 	command_prefix	= prefix,
@@ -30,6 +30,11 @@ bot = Bot(
 	owner_ids		= ylcb_config.data["devs"],
 	activity		= discord.Activity(type= discord.ActivityType.watching, name="some peoples streams.")
 )
+
+
+l.log("Removing help command...", channel=l.DISCORD)
+bot.remove_command("help")
+l.log("Removed help command", channel=l.DISCORD)
 
 guild: discord.Guild
 
@@ -46,8 +51,8 @@ announcementChannel	: discord.TextChannel
 
 @bot.event
 async def on_ready():
-	l.log("Bot ready...")
-	l.log(f"Running version: {__version__}b{build_num}")
+	l.log("Discord bot ready...", channel=l.DISCORD)
+	l.log(f"Running version: {__version__}b{build_num}", channel=l.DISCORD)
 	
 	global guild
 	global secrets
@@ -93,30 +98,30 @@ async def on_ready():
 	elif build_num != secrets.data["CACHED_BUILD"] and not debugging:
 		msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 		if msg.author != bot.user:
-			l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN)
+			l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN, l.DISCORD)
 		else:
 			await msg.edit(embed=embed)
 	
 	##ANCHOR for every extension you want to load, load it
 	for extension in ext.extensions.data["load"]:
-		l.log(f"Loading {extension}...")
+		l.log(f"Loading {extension}...", channel=l.DISCORD)
 		loadable = True
 		try: ## Try catch allows you to skip setting up a requirements value if no requirement is needed
 			for requirement in Config(f"ext/{extension}.json").data["requirements"]:
 				if not bot._BotBase__extensions.__contains__(f"ext.{requirement}") and requirement != "":
 					try: bot.load_extension(f"ext.{requirement}")
 					except Exception as e: 
-						l.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}", l.ERR)
-						l.log(e,l.ERR)
+						l.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}", l.ERR, l.DISCORD)
+						l.log(e,l.ERR,l.DISCORD)
 						bot.remove_cog(f"ext.{extension}")
 						loadable = False
-					else: l.log(f"Loaded requirement {requirement}")
-				else: l.log(f"Requirement {requirement} met")
-		except: pass
+					else: l.log(f"Loaded requirement {requirement}", channel=l.DISCORD)
+				else: l.log(f"Requirement {requirement} met", channel=l.DISCORD)
+		except KeyError: pass
 		if loadable:
-			bot.load_extension(f"ext.{extension}")
-			l.log(f"Loaded {extension}")
-	l.log("YLCB logged in")
+			try: bot.load_extension(f"ext.{extension}")
+			except ExtensionAlreadyLoaded as e: l.log(f"Already loaded ext.{extension}")
+			else: l.log(f"Loaded {extension}", channel=l.DISCORD)
 
 
 @bot.event
@@ -140,40 +145,80 @@ async def on_message(message: discord.Message):
 		embed.add_field(name="Request", value=message.content, inline=True)
 		if message.author.id not in ylcb_config.data["devs"]:
 			await message.author.send("Your request has been sent to the developers. They will respond as soon as possible. The embed below is what they have recieved.", embed=embed)
-		l.log(f"Request from {message.author.display_name}#{message.author.discriminator} recieved")
+		l.log(f"Request from {message.author.display_name}#{message.author.discriminator} recieved", channel=l.DISCORD)
 		
 		for dev in ylcb_config.data["devs"]:
 			developer: discord.User = await bot.fetch_user(dev)
 			if developer: await developer.send(embed=embed)
-			else: l.log(f"Developer with ID {dev} does not exist!", l.ERR)
+			else: l.log(f"Developer with ID {dev} does not exist!", l.ERR, l.DISCORD)
 	await bot.process_commands(message)
+
+
+async def before_invoke(ctx):
+	l.log(ctx, channel=l.DISCORD)
+bot.before_invoke(before_invoke)
 
 
 ## basic commands
 
-@bot.command()
+@bot.command(name="version", usage=f"{prefix}version")
 async def version(ctx):
 	"""Tells you what version I'm running"""
-	l.log(ctx)
 	await ctx.send(f"I'm running version {__version__} build #{build_num}")
 
+@bot.command(name="help", usage=f"{prefix}help")
+async def help_command(ctx, command: Optional[str] = None):
+	"""This command lol"""
+	fields = []
+	if not command:
+		for command in bot.all_commands:
+			cmd: Command = bot.get_command(command)
+			can = not cmd.hidden
+			if can:
+				for in_fields in fields:
+					if in_fields["name"] == cmd.name: can = False
+			if can:
+				fields.append({"name": str(cmd.name), "value": str(cmd.help), "inline": True})
+	else:
+		cmd = bot.get_command(command)
+		if cmd: 
+			fields.append({"name": str(cmd.name), "value": str(cmd.help), "inline": True})
+			fields.append({"name": "Usage", "value": f"`{cmd.usage}`", "inline": True})
+			if cmd.aliases:
+				fields.append({"name": "Aliases", "value": ", ".join(cmd.aliases), "inline": True})
+	embed_dict = {
+		"title": "Help",
+		"description": "`<...>` is a required parameter.\n`[...]` is an optional parameter.\n`:` specifies a type",
+		"color": 0x15F3FF,
+		"fields": fields
+	}
+	await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 
-@bot.command(name="reload")
-async def reload_ext(ctx, ext: str):
-	"""Reloads an extension"""
-	try: await bot.reload_extension("ext."+ext)
-	except ExtensionNotLoaded: await ctx.send(f"{ctx.author.mention}, this extension does not exist")
 
 ## dev level commands
+@bot.command(name="reload", hidden=True)
+@u.is_dev()
+async def reload_ext(ctx, ext: str):
+	"""Reloads an extension"""
+	if ext == "all":
+		for cog in bot._BotBase__extensions:
+			bot.reload_extension(cog)
+		await ctx.send(f"{ctx.author.mention}, all extensions reloaded")
+		return
+	bot.reload_extension("ext."+ext)
+	await ctx.send(f"{ctx.author.mention}, ext.{ext} reloaded")
+@reload_ext.error
+async def reload_ext_error(ctx, error):
+	if isinstance(error, commands.CheckFailure):
+		await ctx.send(f"{ctx.author.mention}, this command can only be used by developers")
+	if isinstance(error, ExtensionNotFound) or isinstance(error, ExtensionNotLoaded):
+		await ctx.send(f"{ctx.author.mention}, this extension does not exist")
 
-@bot.command()
+
+@bot.command(name="dev", hidden=True)
+@u.is_dev()
 async def dev(self, ctx, _user: discord.Member = None):
 	"""Add a developer to the team"""
-	#global ylcb_config
-	l.log(ctx)
-	if not u.dev(ctx.author):
-		await ctx.send(f"{ctx.author.mention}, only developers can use this command.")
-		return
 	if not _user:
 		await ctx.send(f"{ctx.author.mention}, please tag a user to make them a developer.")
 		return
@@ -182,24 +227,24 @@ async def dev(self, ctx, _user: discord.Member = None):
 		await ctx.send(f"{ctx.author.mention}, that user is already a developer.")
 		return
 	
-	
 	ylcb_config.data["devs"].append(_user.id)
 	ylcb_config.updateFile()
 	await ctx.send(f"{_user.mention}, {ctx.author.mention} has made you a developer!")
+@dev.error
+async def dev_error(ctx, error):
+	if isinstance(error, commands.CheckFailure):
+		await ctx.send(f"{ctx.author.mention}, this command can only be used by developers")
 
 
-@bot.command()
+@bot.command(name="stop", hidden=True)
+@u.is_dev()
 async def stop(ctx):
 	"""Safely stop the bot"""
-	if not u.dev(ctx.author):
-		await ctx.send(f"{ctx.author.mention}, only developers can use this command.")
-		return
-	
-	l.log("Developer initiated logout...", l.FLG)
 	await ctx.send(f"Goodbye.")
 	await bot.close()
-	l.log("Successfully logged out and closed. Exiting...", l.FLG)
+	l.log("Successfully logged out and closed. Exiting...", l.FLG, l.DISCORD)
 	exit(1)
+
 
 l.log("Starting script...")
 if debugging:

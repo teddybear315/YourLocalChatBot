@@ -1,10 +1,12 @@
 {
+	"extension_type": 0,
 	"columns": [
 		{"name":"twitch_username",	"default": null	},
 		{"name":"message_id",		"default": null	},
 		{"name":"discord_id",		"default": null	},
 		{"name":"response",			"default": "{}"	},
 		{"name":"balance",			"default": 100	},
-		{"name":"inventory",		"default": "{}"	}
+		{"name":"inventory",		"default": ""	},
+		{"name":"boost",			"default": 0	}
 	]
 }

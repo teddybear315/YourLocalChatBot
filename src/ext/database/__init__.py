@@ -2,7 +2,7 @@
 import discord, sqlite3
 
 import modules.utilities as utils
-from modules.utilities import logger as l
+from modules.utilities import logger as l, prefix
 
 from discord.ext 			import commands
 from ext 					import Extension
@@ -38,17 +38,16 @@ class database(Extension):
 		self.add_new_user(user)
 	
 	
-	@commands.command(name="new")
+	@commands.command(name="new", usage=f"{prefix}new [user:user]")
 	async def new_member_in_db(self, ctx, user: discord.Member=None):
-		l.log(ctx)
-		
+		"""Registers a new member into the database"""
 		if not user: user = ctx.author
 		if self.db.cursor().execute("SELECT * FROM Users WHERE discord_id=:d_id", {"d_id": user.id}).fetchone():
 			await ctx.send(f"{ctx.author.mention}, user already in the database")
 			return
 		try: self.add_new_user(user)
-		except: await ctx.user(f"{ctx.author.mention}, error occurred, please check ")
-		else: await ctx.user(f"{ctx.author.mention}, user successfully added")
+		except: await ctx.send(f"{ctx.author.mention}, error occurred, please check ")
+		else: await ctx.send(f"{ctx.author.mention}, user successfully added")
 
 
 def setup(bot):

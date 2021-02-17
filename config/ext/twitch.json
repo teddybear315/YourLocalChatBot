@@ -1,4 +1,5 @@
 {
-	"enable_custom_links": true,
+	"enabled": true,
+	"extension_type": 1,
 	"requirements": ["database"]
 }

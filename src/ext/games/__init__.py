@@ -1,12 +1,12 @@
-from ext.games.blackjack import Blackjack
 import discord,random,datetime,os
 
 import modules.utilities as utils
 
 from discord.ext.commands 	import Context
 from discord.ext 			import commands, tasks
-from modules.utilities		import logger as l, utilities as u,secrets,ylcb_config
+from modules.utilities		import logger as l, utilities as u,secrets,ylcb_config, prefix
 from ext 					import Extension, database
+from ext.games.blackjack	import Blackjack
 
 class games(Extension):
 	"""Games Extension - ylcb-devs"""
@@ -14,6 +14,8 @@ class games(Extension):
 		"""Games(bot)"""
 		super().__init__(bot, "ext.games")
 		self.econ = bot.get_cog("economy")
+		self.db = bot.get_cog("database").db
+		self.items = bot.get_cog("items")
 		self.airdrop_spawner.start()
 	
 	
@@ -24,7 +26,8 @@ class games(Extension):
 	@tasks.loop(hours=1)
 	async def airdrop_spawner(self):
 		chance = random.randint(1,100)
-		if chance <= 50:
+		if chance < 50:
+			l.log("Airdrop Spawned")
 			money = random.randint(10,1000)
 			embed_dict = {
 				"title":"Airdrop!",
@@ -39,16 +42,23 @@ class games(Extension):
 					"icon_url": str(self.bot.user.avatar_url)
 				}
 			}
+			
+			rand_id = random.randint(1,10)
+			try: item = self.items.get_item_from_id(rand_id)
+			except: item = None
+			if item: embed_dict["fields"].append({"name": "Contains:", "value": "1x "+item["name"]})
+			
 			embed = discord.Embed.from_dict(embed_dict)
 			channel = await self.bot.fetch_channel(ylcb_config.data["discord"]["event_channel_id"])
 			
-			msg: discord.Message = await channel.send(embed=embed)
+			msg: discord.Message = await channel.send("@here", embed=embed)
 			await msg.add_reaction("🛄")
 			def check(reaction: discord.Reaction, user: discord.Member): return user != self.bot.user and str(reaction.emoji) == "🛄"
 			reaction, user = await self.bot.wait_for("reaction_add", check=check) #(":baggage_claim:")
-			l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}")
-			bal = self.econ.get_bal_from_d_id(user.id)
-			self.econ.set_balance_from_d_id(bal + money, user.id)
+			l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
+			bal = self.econ.get_balance_from_d_id(user.id)
+			self.econ.set_balance_from_d_id(user.id, bal + money)
+			if item: self.items.add_item_to_inventory_from_d_id(user.id, item["id"])
 			
 			embed_dict["title"] = "Claimed!"
 			embed_dict["timestamp"] = datetime.datetime.now().isoformat()
@@ -59,7 +69,7 @@ class games(Extension):
 			}
 			
 			embed = discord.Embed.from_dict(embed_dict)
-			await msg.edit(embed=embed)
+			await msg.edit(content=None, embed=embed)
 	
 	
 	@airdrop_spawner.before_loop
@@ -82,7 +92,7 @@ class games(Extension):
 		if bet > _cfg["max_bet"] and _cfg["max_bet"] != 0:
 			await ctx.send(f"{ctx.author.mention}, the max bet is {_cfg['max_bet']}")
 			return False
-		self.econ.set_balance_from_d_id(points - bet, ctx.author.id)
+		self.econ.set_balance_from_d_id(ctx.author.id, points - bet)
 		return True
 	
 	
@@ -90,44 +100,102 @@ class games(Extension):
 	Game functions need to start with this template
 	@commands.command(name="game_name")
 	async def game_name(self, ctx, points: int = None):
-		l.log(ctx)
 		_cfg = self.config.data["games"][game_name]
-		points = self.econ.get_bal_from_d_id(ctx.author.id)
+		points = self.econ.get_balance_from_d_id(ctx.author.id)
 		## important checks needed to play the game lol
 		if not points: 
 			await ctx.send(f"{ctx.author.mention}, please specify a bet")
 			return
-		if not await self.can_user_play(ctx, _cfg, points): return
+		if not await self.can_user_play(ctx, _cfg, bet, points): return
 		## set points again because can_user_play edits
-		points = self.econ.get_bal_from_d_id(ctx.author.id)
+		points = self.econ.get_balance_from_d_id(ctx.author.id)
 		## logging the successful start of a game
-		l.log(f"{game_name} start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet} | CPU:{cpu_score}")
+		l.log(f"{game_name} start: {ctx.author.display_name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | CPU:{cpu_score}", channel=l.DISCORD)
 	"""
 	
 	
-	@commands.command(name="21")
+	@commands.command(name="chance", usage=f"{prefix}chance <bet:float>")
+	async def chance(self, ctx, bet: float = None):
+		"""Quick and easy betting"""
+		_cfg = self.config.data["games"]["chance"]
+		points = self.econ.get_balance_from_d_id(ctx.author.id)
+		## important checks needed to play the game lol
+		if not points: 
+			await ctx.send(f"{ctx.author.mention}, please specify a bet")
+			return
+		if not await self.can_user_play(ctx, _cfg, bet, points): return
+		## set points again because can_user_play edits
+		points = self.econ.get_balance_from_d_id(ctx.author.id)
+		
+		## logging the successful start of a chance game
+		l.log(f"Chance start: {ctx.author.name}#{ctx.author.discriminator} | Bet:${bet}", channel=l.DISCORD)
+		## lazy man's blackjack
+		p_score	  = random.randint(2,21)
+		cpu_score = random.randint(2,21)
+		
+		embed_dict = {
+			"title":"It\'s a push!",
+			"type": "rich",
+			"timestamp": datetime.datetime.now().isoformat(),
+			"color": 0xffdd00,
+			"fields": [
+				{"name": "You scored:", "value": p_score, "inline": True},
+				{"name": "I scored:", "value": cpu_score, "inline": True}
+			]
+		}
+		boost = self.items.get_boost_from_d_id(ctx.author.id)
+		multiplier = 1 + boost
+		if p_score > cpu_score:
+			multiplier = _cfg["small_multiplier"] + boost
+			if p_score == 21: multiplier = _cfg["large_multiplier"] + boost
+			self.econ.set_balance_from_d_id(ctx.author.id, points + (bet*multiplier))
+			embed_dict["color"] = 0x00ff00
+			embed_dict["title"] = f"You won ${bet*multiplier}!"
+		elif cpu_score > p_score:
+			embed_dict["color"] = 0xff0000
+			embed_dict["title"] = f"You lost ${bet}!"
+		elif cpu_score == p_score:
+			self.econ.set_balance_from_d_id(ctx.author.id, points + bet)
+		embed = discord.Embed.from_dict(embed_dict)
+		await ctx.send(embed=embed)
+		l.log(f"Chance outcome: {ctx.author.name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | Multiplier:{multiplier}x ({boost}) | CPU:{cpu_score}", channel=l.DISCORD)
+	
+	
+	@commands.command(name="21", aliases=["bj", "blackjack"], usage=f"{prefix}21 <bet:float>")
 	async def blackjack(self, ctx, bet: float = None):
-		"""Blackjack minigame"""
-		l.log(ctx)
+		"""Basic version of blackjack"""
 		bet = round(bet, 2)
 		_cfg = self.config.data["games"]["blackjack"]
-		points = self.econ.get_bal_from_d_id(ctx.author.id)
+		points = self.econ.get_balance_from_d_id(ctx.author.id)
 		## important checks needed to play the game lol
 		if not bet: 
 			await ctx.send(f"{ctx.author.mention}, please specify a bet")
 			return
 		if not await self.can_user_play(ctx, _cfg, bet, points): return
 		## set points again because can_user_play edits
-		points = self.econ.get_bal_from_d_id(ctx.author.id)
+		points = self.econ.get_balance_from_d_id(ctx.author.id)
 		## logging the successful start of a bj game
-		l.log(f"Blackjack start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet}")
-		## lazy man's blackjack
-		bj = Blackjack()
-		await bj.game(ctx,self,bet)
+		l.log(f"Blackjack start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet}", channel=l.DISCORD)
+		
+		bj = Blackjack(ctx,self,bet)
+		await bj.game()
+		
 		p_score = Blackjack.total(bj.player_hand)
 		cpu_score = Blackjack.total(bj.dealer_hand)
-		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | CPU:{cpu_score}")
-
+		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | CPU:{cpu_score}", channel=l.DISCORD)
+	
+	
+	#ANCHOR admin commands
+	
+	@commands.command(name="spawn_airdrop", hidden=True)
+	@u.is_admin()
+	async def spawn_airdrop(self, ctx):
+		await ctx.message.delete()
+		self.airdrop_spawner.restart()
+	@spawn_airdrop.error
+	async def spawn_airdrop_error(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			await ctx.send(f"{ctx.author.mention}, this command can only be used by admins")
 
 def setup(bot):
 	bot.add_cog(games(bot))
