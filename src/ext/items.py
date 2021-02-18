@@ -118,7 +118,7 @@ class items(Extension):
 	@commands.command(name="use", aliases=["activate"], usage=f"{prefix}use")
 	async def use_item(self, ctx, item_id: int):
 		"""Use a booster if able to boost"""
-		boost = self.db.cursor().execute("SELECT boost FROM Users WHERE discord_id=:d_id", {"d_id": ctx.author.id}).fetchone()[0]
+		boost = self.get_boost_from_d_id(ctx.author.id)
 		if boost != 0:
 			await ctx.send(f"{ctx.author.mention}, you already have another item being used")
 			return
@@ -126,9 +126,8 @@ class items(Extension):
 		if item["type"] != "boost":
 			await ctx.send(f"{ctx.author.mention}, this item cannot be used")
 			return
-		self.trash_item(item_id, ctx.author.id)
-		self.db.execute("UPDATE Users SET boost=:boost WHERE discord_id=:d_id", {"boost":item["effect"], "d_id": ctx.author.id})
-		self.db.commit()
+		self.trash_item_from_d_id(ctx.author.id, item_id)
+		self.set_boost_from_d_id(ctx.author.id, item["effect"])
 		await ctx.send(f"{ctx.author.mention}, you have used this {item['name']}")
 	
 	
@@ -146,6 +145,7 @@ class items(Extension):
 		if isinstance(error, commands.CheckFailure):
 			await ctx.send(f"{ctx.author.mention}, this command can only be used by admins")
 	
+	
 	@commands.command(name="set_inventory", hidden=True)
 	@u.is_admin()
 	async def set_inventory(self, ctx, user: discord.Member, items: str):
@@ -158,6 +158,7 @@ class items(Extension):
 		if isinstance(error, commands.CheckFailure):
 			await ctx.send(f"{ctx.author.mention}, this command can only be used by admins")
 	
+	
 	@commands.command(name="add_to_inventory", hidden=True)
 	@u.is_admin()
 	async def add_to_inventory(self, ctx, user: discord.Member, item_id: int):
@@ -169,6 +170,7 @@ class items(Extension):
 	async def add_to_inventory_error(self, ctx, error):
 		if isinstance(error, commands.CheckFailure):
 			await ctx.send(f"{ctx.author.mention}, this command can only be used by admins")
+	
 	
 	@commands.command(name="remove_from_inventory", hidden=True)
 	@u.is_admin()

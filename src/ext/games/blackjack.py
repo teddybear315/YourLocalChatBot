@@ -17,7 +17,7 @@ class Blackjack:
 		self.ctx = ctx
 		self.parent = parent
 		self.player = ctx.author
-		self.dealer_hand = [1,6]
+		self.dealer_hand = self.deal()
 		self.player_hand = self.deal()
 		self.boost = self.parent.bot.get_cog("items").get_boost_from_d_id(self.player.id)
 	
@@ -176,4 +176,5 @@ class Blackjack:
 			self.embed_dict["title"] = "Push!"
 			self.embed_dict["color"] = 0xffdd00
 			self.parent.econ.set_balance_from_d_id(self.player.id, self.parent.econ.get_balance_from_d_id(self.player.id) + self.bet)
+		self.parent.items.reset_boost_from_d_id(self.player.id)
 		return self.embed_dict

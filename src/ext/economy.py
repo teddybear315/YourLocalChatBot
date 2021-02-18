@@ -26,7 +26,7 @@ class economy(Extension):
 	def can_pay_amount(self, sender: discord.Member, amount: int)	-> bool	:
 		"""Returns if balance can be paid"""
 		snd_bal = self.get_balance_from_d_id(sender.id)
-		return snd_bal < amount
+		return snd_bal > amount
 	
 	
 	@commands.command(name="balance", aliases=["bal"], usage=f"{prefix}balance [user:user]")
