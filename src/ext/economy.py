@@ -20,7 +20,7 @@ class economy(Extension):
 		return self.db.cursor().execute("SELECT balance FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
 	def set_balance_from_d_id(self, discord_id: int, bal: int)		-> float:
 		"""Returns and sets a given users balance to bal"""
-		self.db.execute("UPDATE Users SET balance=:bal WHERE discord_id=:d_id", {"bal": bal, "d_id": discord_id})
+		self.db.execute("UPDATE Users SET balance=:bal WHERE discord_id=:d_id", {"bal": round(bal, 2), "d_id": discord_id})
 		self.db.commit()
 		return bal
 	def can_pay_amount(self, sender: discord.Member, amount: int)	-> bool	:
@@ -207,6 +207,7 @@ class economy(Extension):
 	async def add_balance_error(self, ctx, error):
 		if isinstance(error, commands.CheckFailure):
 			await ctx.send(f"{ctx.author.mention}, this command can only be used by admins")
+	
 	
 	@commands.command(name="sub_balance", hidden=True)
 	@u.is_admin()

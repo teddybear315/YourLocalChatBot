@@ -17,7 +17,9 @@ class items(Extension):
 	
 	def get_inventory_from_d_id(self, discord_id: int)							-> list	:
 		"""Returns given user's inventory"""
-		inv: list = self.db.cursor().execute("SELECT inventory FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
+		inv = self.db.cursor().execute("SELECT inventory FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
+		inv = [int(x) for x in inv.split(",")]
+		l.log(inv, l.FLG, l.DISCORD)
 		return inv
 	def set_inventory_from_d_id(self, discord_id: int, inventory: list)			-> list	:
 		"""Returns and sets the given user's inventory value to inventory"""
@@ -29,8 +31,7 @@ class items(Extension):
 		return self.config.data["items"][int(item_id)]
 	def add_item_to_inventory_from_d_id(self, discord_id: int, item_id: int)	-> int	:
 		"""Returns and adds an item to the given user's inventory"""
-		inv: list = self.get_inventory_from_d_id(discord_id)
-		inv.append(item_id)
+		inv: list = self.get_inventory_from_d_id(discord_id).append(item_id)
 		self.set_inventory_from_d_id(discord_id, inv)
 		return self.get_item_from_id(item_id)
 	def trash_item_from_d_id(self, discord_id: int, item_id: int)				-> int	:
@@ -119,10 +120,14 @@ class items(Extension):
 	async def use_item(self, ctx, item_id: int):
 		"""Use a booster if able to boost"""
 		boost = self.get_boost_from_d_id(ctx.author.id)
+		item = self.get_item_from_id(item_id)
+		inv = self.get_inventory_from_d_id(ctx.author.id)
+		if item["id"] not in inv:
+			await ctx.send(f"{ctx.author.mention}, this item is not in your inventory")
+			return
 		if boost != 0:
 			await ctx.send(f"{ctx.author.mention}, you already have another item being used")
 			return
-		item = self.get_item_from_id(item_id)
 		if item["type"] != "boost":
 			await ctx.send(f"{ctx.author.mention}, this item cannot be used")
 			return
@@ -133,7 +138,7 @@ class items(Extension):
 	
 	#ANCHOR admin commands
 	
-	@commands.command(name="set_booster", hidden=True)
+	@commands.command(name="set_boost", hidden=True)
 	@u.is_admin()
 	async def set_booster(self, ctx, user: discord.Member, booster_value: int):
 		"""Set a user's booster value"""
