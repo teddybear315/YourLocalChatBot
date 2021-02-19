@@ -18,8 +18,7 @@ class items(Extension):
 	def get_inventory_from_d_id(self, discord_id: int)							-> list	:
 		"""Returns given user's inventory"""
 		inv = self.db.cursor().execute("SELECT inventory FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
-		inv = [int(x) for x in inv.split(",")]
-		l.log(inv, l.FLG, l.DISCORD)
+		if inv: inv = [int(x) for x in inv.split(",")]
 		return inv
 	def set_inventory_from_d_id(self, discord_id: int, inventory: list)			-> list	:
 		"""Returns and sets the given user's inventory value to inventory"""

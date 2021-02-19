@@ -26,7 +26,7 @@ class games(Extension):
 	@tasks.loop(hours=1)
 	async def airdrop_spawner(self):
 		chance = random.randint(1,100)
-		if chance < 50:
+		if chance < 60:
 			l.log("Airdrop Spawned")
 			money = random.randint(10,1000)
 			embed_dict = {
@@ -175,19 +175,7 @@ class games(Extension):
 		await bj.game()
 		
 		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{Blackjack.total(bj.player_hand)} | Bet:${bet} | Multiplier:{bj.multiplier}x ({bj.boost}) | CPU:{Blackjack.total(bj.dealer_hand)}", channel=l.DISCORD)
-	
-	
-	#ANCHOR admin commands
-	
-	@commands.command(name="spawn_airdrop", hidden=True)
-	@u.is_admin()
-	async def spawn_airdrop(self, ctx):
-		await ctx.message.delete()
-		self.airdrop_spawner.restart()
-	@spawn_airdrop.error
-	async def spawn_airdrop_error(self, ctx, error):
-		if isinstance(error, commands.CheckFailure):
-			await ctx.send(f"{ctx.author.mention}, this command can only be used by admins")
+
 
 def setup(bot):
 	bot.add_cog(games(bot))
