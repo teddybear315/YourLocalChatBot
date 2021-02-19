@@ -1,12 +1,17 @@
-import discord,random,datetime,os
+import datetime
+import os
+import random
 
+import discord
 import modules.utilities as utils
+from discord.ext import commands, tasks
+from ext import Extension
+from ext.games.blackjack import Blackjack
+from modules.utilities import logger as l
+from modules.utilities import prefix, secrets
+from modules.utilities import utilities as u
+from modules.utilities import ylcb_config
 
-from discord.ext.commands 	import Context
-from discord.ext 			import commands, tasks
-from modules.utilities		import logger as l, utilities as u,secrets,ylcb_config, prefix
-from ext 					import Extension, database
-from ext.games.blackjack	import Blackjack
 
 class games(Extension):
 	"""Games Extension - ylcb-devs"""

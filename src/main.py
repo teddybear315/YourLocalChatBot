@@ -5,9 +5,7 @@ from sys import argv
 from typing import Optional
 
 import discord
-import discord.errors
 from discord.ext import commands
-from discord.ext.commands import Bot, Command, ExtensionAlreadyLoaded, ExtensionNotFound, ExtensionNotLoaded
 
 ## importing local modules
 import ext
@@ -21,12 +19,12 @@ from modules.utilities import ylcb_config
 __version__	= ylcb_config.data["meta"]["version"]
 build_num	= ylcb_config.data["meta"]["build_number"]
 
-bot = Bot(	
+bot = commands.Bot(	
 	command_prefix	= prefix,
 	case_insensitive= True,
 	description		= ylcb_config.data["bot"]["description"],
 	owner_ids		= ylcb_config.data["devs"],
-	activity		= discord.Activity(type= discord.ActivityType.watching, name="some peoples streams.")
+	activity		= discord.Activity(type=discord.ActivityType.watching, name="some peoples streams.")
 )
 
 
@@ -120,7 +118,7 @@ async def on_ready():
 		except KeyError: pass
 		if loadable:
 			try: bot.load_extension(f"ext.{extension}")
-			except ExtensionAlreadyLoaded as e: l.log(f"Already loaded ext.{extension}")
+			except commands.ExtensionAlreadyLoaded: l.log(f"Already loaded ext.{extension}")
 			else: l.log(f"Loaded {extension}", channel=l.DISCORD)
 
 
@@ -137,8 +135,6 @@ async def on_member_remove(user: discord.Member):
 
 @bot.event
 async def on_message(message: discord.Message):
-	global suggestionChannel
-	
 	if message.channel == suggestionChannel:
 		embed = discord.Embed(title="New Feature Request!", color=0x8000ff)
 		embed.set_author(name=f"{message.author.display_name}#{message.author.discriminator}", icon_url=message.author.avatar_url)
@@ -211,7 +207,7 @@ async def reload_ext(ctx, ext: str):
 async def reload_ext_error(ctx, error):
 	if isinstance(error, commands.CheckFailure):
 		await ctx.send(f"{ctx.author.mention}, this command can only be used by developers")
-	if isinstance(error, ExtensionNotFound) or isinstance(error, ExtensionNotLoaded):
+	if isinstance(error, commands.ExtensionNotFound) or isinstance(error, commands.ExtensionNotLoaded):
 		await ctx.send(f"{ctx.author.mention}, this extension does not exist")
 
 

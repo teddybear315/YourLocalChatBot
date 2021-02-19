@@ -1,17 +1,19 @@
-import discord,random,datetime,os
+import datetime
+import os
+import random
 
+import discord
 import modules.utilities as utils
+from ext import Extension
+from modules.utilities import logger as l
 
-from discord.ext.commands 	import Context
-from ext 					import Extension
-from modules.utilities		import logger as l
 
 class Blackjack:
 	playing = True
 	card_strs = ["alert a developer if you see this", "🇦", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🇯", "🇶", "🇰"]
 	
 	
-	def __init__(self, ctx: Context, parent: Extension, bet: float):
+	def __init__(self, ctx, parent: Extension, bet: float):
 		self.deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]*4
 		self.bet = bet
 		self.ctx = ctx

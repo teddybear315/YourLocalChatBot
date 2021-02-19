@@ -1,8 +1,11 @@
-import datetime, json, discord
-
-from discord.ext.commands import Context, check
-from neotermcolor import cprint
+import datetime
+import json
 from sys import argv
+
+import discord
+from discord.ext import commands
+from neotermcolor import cprint
+
 
 class Config:
 	"""Config class"""
@@ -48,7 +51,7 @@ class Logger:
 		prefix = "LOG"
 		color = "white"
 		
-		if type(msg) is Context:
+		if type(msg) is commands.Context:
 			lvl = Logger.CMD
 			msg = f"{msg.command.name} command ran by {msg.author.display_name}#{msg.author.discriminator}"
 		
@@ -75,7 +78,7 @@ class Utilities:
 		"""Returns if user is an admin"""
 		async def predicate(ctx):
 			return ctx.author.guild_permissions.administrator
-		return check(predicate)
+		return commands.check(predicate)
 	
 	
 	@staticmethod
@@ -83,7 +86,7 @@ class Utilities:
 		"""Returns if user is one of my developers"""
 		async def predicate(ctx):
 			return ctx.author.id in ylcb_config.data["devs"]
-		return check(predicate)
+		return commands.check(predicate)
 	
 	
 	@staticmethod

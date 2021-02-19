@@ -10,7 +10,7 @@
 	],
 	"meta": {
 		"version": "1.2.1",
-		"build_number": 1,
+		"build_number": 2,
 		"changelog": [
 			"Fixed a bug where `secrets.json` wasnt updated after a build number change"
 		]

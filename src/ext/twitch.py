@@ -1,11 +1,18 @@
-import discord, requests, sqlite3, requests, datetime
-import modules.utilities as utils
+import datetime
+import json
 from sys import argv
 
-from discord.ext.commands	import Context
-from discord.ext			import commands, tasks
-from modules.utilities		import logger as l,secrets,ylcb_config, utilities as u, prefix
-from ext					import *
+import discord
+import modules.utilities as utils
+import requests
+from discord.ext import commands, tasks
+from modules.utilities import logger as l
+from modules.utilities import prefix, secrets
+from modules.utilities import utilities as u
+from modules.utilities import ylcb_config
+
+from ext import Extension
+
 
 class twitch(Extension):
 	"""Twitch Integration Extension - ylcb-devs"""
@@ -22,7 +29,7 @@ class twitch(Extension):
 	
 	@commands.command(name="streamer", usage=f"{prefix}streamer <user:user> <twitch_username:str>")
 	@u.is_admin()
-	async def streamer(self, ctx: Context, user: discord.Member = None, twitch_username: str = None):
+	async def streamer(self, ctx, user: discord.Member = None, twitch_username: str = None):
 		"""Adds twitch username to a specified user in the database"""
 		if not user:
 			await ctx.send(f"{ctx.author.mention}, please tag a user to make them a streamer.")

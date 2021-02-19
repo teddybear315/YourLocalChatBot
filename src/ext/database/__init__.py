@@ -1,11 +1,12 @@
 """ This is an example of a multi-file and useful extension. database - ylcb-devs """
-import discord, sqlite3
+import sqlite3
 
+import discord
 import modules.utilities as utils
-from modules.utilities import logger as l, prefix
-
-from discord.ext 			import commands
-from ext 					import Extension
+from discord.ext import commands
+from ext import Extension
+from modules.utilities import logger as l
+from modules.utilities import prefix
 
 
 class database(Extension):

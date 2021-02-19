@@ -1,10 +1,13 @@
-import discord, datetime
+import datetime
 
+import discord
 import modules.utilities as utils
+from discord.ext import commands
+from modules.utilities import logger as l
+from modules.utilities import prefix
+from modules.utilities import utilities as u
 
-from discord.ext 			import commands
-from ext 					import Extension
-from modules.utilities		import logger as l, utilities as u, prefix
+from ext import Extension
 
 
 class economy(Extension):

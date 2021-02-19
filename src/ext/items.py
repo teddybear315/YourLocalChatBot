@@ -1,9 +1,11 @@
-import discord, datetime
+import datetime
 
-from modules.utilities import logger as l, utilities as u, prefix
-
+import discord
 from discord.ext import commands
-from discord.ext.commands import Context
+from modules.utilities import logger as l
+from modules.utilities import prefix
+from modules.utilities import utilities as u
+
 from ext import Extension
 
 
@@ -15,25 +17,26 @@ class items(Extension):
 		self.db = bot.get_cog("database").db
 	
 	
-	def get_inventory_from_d_id(self, discord_id: int)							-> list	:
+	def get_item_from_id				(self, item_id: int)						-> dict	:
+		"""Returns an item object from its id"""
+		return self.config.data["items"][item_id]
+	def get_inventory_from_d_id			(self, discord_id: int)						-> list	:
 		"""Returns given user's inventory"""
 		inv = self.db.cursor().execute("SELECT inventory FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
-		if inv: inv = [int(x) for x in inv.split(",")]
-		return inv
-	def set_inventory_from_d_id(self, discord_id: int, inventory: list)			-> list	:
+		if inv: return [int(x) for x in inv.split(",")]
+		return []
+	def set_inventory_from_d_id			(self, discord_id: int, inventory: list)	-> list	:
 		"""Returns and sets the given user's inventory value to inventory"""
 		self.db.execute("UPDATE Users SET inventory=:inv WHERE discord_id=:d_id", {"inv": ",".join([str(_item) for _item in inventory]), "d_id": discord_id})
 		self.db.commit()
 		return inventory
-	def get_item_from_id(self, item_id: int)									-> dict	:
-		"""Returns an item object from its id"""
-		return self.config.data["items"][item_id]
-	def add_item_to_inventory_from_d_id(self, discord_id: int, item_id: int)	-> int	:
+	def add_item_to_inventory_from_d_id	(self, discord_id: int, item_id: int)		-> dict	:
 		"""Returns and adds an item to the given user's inventory"""
-		inv: list = self.get_inventory_from_d_id(discord_id).append(item_id)
+		inv = self.get_inventory_from_d_id(discord_id)
+		inv.append(item_id)
 		self.set_inventory_from_d_id(discord_id, inv)
 		return self.get_item_from_id(item_id)
-	def trash_item_from_d_id(self, discord_id: int, item_id: int)				-> dict	:
+	def trash_item_from_d_id			(self, discord_id: int, item_id: int)		-> dict	:
 		"""Returns and deletes a given item from a given user's inventory"""
 		inv = self.get_inventory_from_d_id(discord_id)
 		done = False
@@ -43,18 +46,18 @@ class items(Extension):
 				done = True
 		self.set_inventory_from_d_id(discord_id, inv)
 		return self.get_item_from_id(item_id)
-	def get_boost_from_d_id(self, discord_id: int)								-> float:
+	def get_boost_from_d_id				(self, discord_id: int)						-> float:
 		"""Returns given user's current boost value"""
 		return float(self.db.cursor().execute("SELECT boost FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0])
-	def set_boost_from_d_id(self, discord_id: int, boost_value: int)			-> int	:
+	def set_boost_from_d_id				(self, discord_id: int, boost_value: int)	-> int	:
 		"""Returns and sets given users boost value to boost_value"""
 		self.db.cursor().execute("UPDATE Users SET boost=:value WHERE discord_id=:d_id", {"value": boost_value, "d_id": discord_id})
 		self.db.commit()
 		return boost_value
-	def reset_boost_from_d_id(self, discord_id: int)							-> int	:
+	def reset_boost_from_d_id			(self, discord_id: int)						-> int	:
 		"""Returns and sets user's boost value to 0"""
 		return self.set_boost_from_d_id(discord_id, 0)
-	def inventory_str_to_list(self, inventory_str: str)							-> list	:
+	def inventory_str_to_list			(self, inventory_str: str)					-> list	:
 		"""Parses and returns inventory object from items"""
 		return ",".split(inventory_str)
 	
