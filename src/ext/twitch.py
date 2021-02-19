@@ -21,11 +21,9 @@ class twitch(Extension):
 	
 	
 	@commands.command(name="streamer", usage=f"{prefix}streamer <user:user> <twitch_username:str>")
+	@u.is_admin()
 	async def streamer(self, ctx: Context, user: discord.Member = None, twitch_username: str = None):
 		"""Adds twitch username to a specified user in the database"""
-		if not u.admin(ctx.author):
-			await ctx.send(f"{ctx.author.mention}, only admins can use this command.")
-			return
 		if not user:
 			await ctx.send(f"{ctx.author.mention}, please tag a user to make them a streamer.")
 			return
@@ -36,8 +34,7 @@ class twitch(Extension):
 			await ctx.send(f"{ctx.author.mention}, that user is already a streamer.")
 			return
 		
-		guild = await self.bot.fetch_guild(ylcb_config.data["discord"]["guild_id"])
-		await user.add_roles(guild.get_role(ylcb_config.data["discord"]["streamer_role_id"]))
+		await user.add_roles(await self.bot.fetch_guild(ylcb_config.data["discord"]["guild_id"]).get_role(ylcb_config.data["discord"]["streamer_role_id"]))
 		self.db.execute("UPDATE Users SET twitch_username=:user WHERE discord_id=:d_id",{"user": twitch_username, "d_id": user.id})
 		self.db.commit()
 		await ctx.send(f"{user.mention}, {ctx.author.mention} has made you a streamer!")

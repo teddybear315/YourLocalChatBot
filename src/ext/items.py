@@ -28,18 +28,20 @@ class items(Extension):
 		return inventory
 	def get_item_from_id(self, item_id: int)									-> dict	:
 		"""Returns an item object from its id"""
-		return self.config.data["items"][int(item_id)]
+		return self.config.data["items"][item_id]
 	def add_item_to_inventory_from_d_id(self, discord_id: int, item_id: int)	-> int	:
 		"""Returns and adds an item to the given user's inventory"""
 		inv: list = self.get_inventory_from_d_id(discord_id).append(item_id)
 		self.set_inventory_from_d_id(discord_id, inv)
 		return self.get_item_from_id(item_id)
-	def trash_item_from_d_id(self, discord_id: int, item_id: int)				-> int	:
+	def trash_item_from_d_id(self, discord_id: int, item_id: int)				-> dict	:
 		"""Returns and deletes a given item from a given user's inventory"""
 		inv = self.get_inventory_from_d_id(discord_id)
+		done = False
 		for i,inv_item_id in enumerate(inv):
-			if inv_item_id == item_id:
+			if inv_item_id == item_id and not done:
 				inv.pop(i)
+				done = True
 		self.set_inventory_from_d_id(discord_id, inv)
 		return self.get_item_from_id(item_id)
 	def get_boost_from_d_id(self, discord_id: int)								-> float:
@@ -57,8 +59,12 @@ class items(Extension):
 		"""Parses and returns inventory object from items"""
 		return ",".split(inventory_str)
 	
-	# for item in self.config.data["items"] if item["id"] == id: then you found item
-	def give_item(self, _id, user: discord.Member): pass # give item to another user
+	
+	@commands.command(name="give_item", usage=f"{prefix}give <reciever:user> <item_id:int>")
+	async def give_item(self, ctx, reciever: discord.Member, item_id): 
+		item = self.trash_item_from_d_id(ctx.author.id, item_id)
+		self.add_item_to_inventory_from_d_id(reciever.id, item["id"])
+		await ctx.send(f"{ctx.author.mention}, you have given {item.name} to {reciever.mention}")
 	
 	
 	@commands.command(name="view", usage=f"{prefix}view <item_id:int>")
@@ -86,8 +92,8 @@ class items(Extension):
 		boost = self.get_boost_from_d_id(ctx.author.id)
 		if boost:
 			await ctx.send(f"{ctx.author.mention}, you currently have a {boost}x boost")
-		else:
-			await ctx.send(f"{ctx.author.mention}, you currently have no active boost")
+			return
+		await ctx.send(f"{ctx.author.mention}, you currently have no active boost")
 	
 	
 	@commands.command(name="inventory", aliases=["inv"], usage=f"{prefix}inventory [user:user]")

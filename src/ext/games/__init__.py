@@ -56,8 +56,7 @@ class games(Extension):
 			def check(reaction: discord.Reaction, user: discord.Member): return user != self.bot.user and str(reaction.emoji) == "🛄"
 			reaction, user = await self.bot.wait_for("reaction_add", check=check) #(":baggage_claim:")
 			l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
-			bal = self.econ.get_balance_from_d_id(user.id)
-			self.econ.set_balance_from_d_id(user.id, bal + money)
+			self.econ.set_balance_from_d_id(user.id, self.econ.get_balance_from_d_id(user.id) + money)
 			if item: self.items.add_item_to_inventory_from_d_id(user.id, item["id"])
 			
 			embed_dict["title"] = "Claimed!"
@@ -98,16 +97,14 @@ class games(Extension):
 	
 	"""
 	Game functions need to start with this template
-	@commands.command(name="game_name")
+	@commands.command(name=game_name)
 	async def game_name(self, ctx, points: int = None):
-		_cfg = self.config.data["games"][game_name]
-		points = self.econ.get_balance_from_d_id(ctx.author.id)
+		# _cfg = self.config.data["games"][game_name]
 		## important checks needed to play the game lol
 		if not points: 
 			await ctx.send(f"{ctx.author.mention}, please specify a bet")
 			return
-		if not await self.can_user_play(ctx, _cfg, bet, points): return
-		## set points again because can_user_play edits
+		if not await self.can_user_play(ctx, (self.config.data["games"][game_name] or _cfg), bet, self.econ.get_balance_from_d_id(ctx.author.id)): return
 		points = self.econ.get_balance_from_d_id(ctx.author.id)
 		## logging the successful start of a game
 		l.log(f"{game_name} start: {ctx.author.display_name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | CPU:{cpu_score}", channel=l.DISCORD)
@@ -117,14 +114,13 @@ class games(Extension):
 	@commands.command(name="chance", usage=f"{prefix}chance <bet:float>")
 	async def chance(self, ctx, bet: float = None):
 		"""Quick and easy betting"""
+		bet = round(bet, 2) 
 		_cfg = self.config.data["games"]["chance"]
-		points = self.econ.get_balance_from_d_id(ctx.author.id)
 		## important checks needed to play the game lol
-		if not points: 
+		if not bet: 
 			await ctx.send(f"{ctx.author.mention}, please specify a bet")
 			return
-		if not await self.can_user_play(ctx, _cfg, bet, points): return
-		## set points again because can_user_play edits
+		if not await self.can_user_play(ctx, _cfg, bet, self.econ.get_balance_from_d_id(ctx.author.id)): return
 		points = self.econ.get_balance_from_d_id(ctx.author.id)
 		
 		## logging the successful start of a chance game
@@ -143,14 +139,16 @@ class games(Extension):
 				{"name": "I scored:", "value": cpu_score, "inline": True}
 			]
 		}
+		
 		boost = self.items.get_boost_from_d_id(ctx.author.id)
 		multiplier = 1 + boost
 		if p_score > cpu_score:
+			won = bet*multiplier
 			multiplier = _cfg["small_multiplier"] + boost
 			if p_score == 21: multiplier = _cfg["large_multiplier"] + boost
-			self.econ.set_balance_from_d_id(ctx.author.id, points + (bet*multiplier))
+			self.econ.set_balance_from_d_id(ctx.author.id, points + won)
 			embed_dict["color"] = 0x00ff00
-			embed_dict["title"] = f"You won ${bet*multiplier}!"
+			embed_dict["title"] = f"You won ${won}!"
 		elif cpu_score > p_score:
 			embed_dict["color"] = 0xff0000
 			embed_dict["title"] = f"You lost ${bet}!"
@@ -164,25 +162,19 @@ class games(Extension):
 	@commands.command(name="21", aliases=["bj", "blackjack"], usage=f"{prefix}21 <bet:float>")
 	async def blackjack(self, ctx, bet: float = None):
 		"""Basic version of blackjack"""
-		bet = round(bet, 2)
-		_cfg = self.config.data["games"]["blackjack"]
-		points = self.econ.get_balance_from_d_id(ctx.author.id)
+		bet = round(bet, 2) 
 		## important checks needed to play the game lol
 		if not bet: 
 			await ctx.send(f"{ctx.author.mention}, please specify a bet")
 			return
-		if not await self.can_user_play(ctx, _cfg, bet, points): return
-		## set points again because can_user_play edits
-		points = self.econ.get_balance_from_d_id(ctx.author.id)
+		if not await self.can_user_play(ctx, self.config.data["games"]["blackjack"], bet, self.econ.get_balance_from_d_id(ctx.author.id)): return
 		## logging the successful start of a bj game
 		l.log(f"Blackjack start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet}", channel=l.DISCORD)
 		
 		bj = Blackjack(ctx,self,bet)
 		await bj.game()
 		
-		p_score = Blackjack.total(bj.player_hand)
-		cpu_score = Blackjack.total(bj.dealer_hand)
-		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | CPU:{cpu_score}", channel=l.DISCORD)
+		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{Blackjack.total(bj.player_hand)} | Bet:${bet} | Multiplier:{bj.multiplier}x ({bj.boost}) | CPU:{Blackjack.total(bj.dealer_hand)}", channel=l.DISCORD)
 	
 	
 	#ANCHOR admin commands

@@ -149,7 +149,7 @@ class Blackjack:
 			]
 			return self.embed_dict
 		
-		multiplier = 1 + self.boost
+		self.multiplier = 1 + self.boost
 		_cfg = self.parent.config.data["games"]["blackjack"]
 		
 		self.embed_dict["fields"] = [
@@ -164,11 +164,12 @@ class Blackjack:
 		else: self.embed_dict["footer"] = None
 		
 		if (self.total(self.player_hand) > self.total(self.dealer_hand) or self.total(self.dealer_hand) > 21) and self.total(self.player_hand) <= 21: ## if won
-			multiplier = _cfg["small_multiplier"] + self.boost
-			if self.total(self.player_hand) == 21 and len(self.player_hand) == 2: multiplier = _cfg["large_multiplier"] + self.boost
-			self.parent.econ.set_balance_from_d_id(self.player.id, self.parent.econ.get_balance_from_d_id(self.player.id) + (self.bet*multiplier))
+			self.multiplier = _cfg["small_multiplier"] + self.boost
+			if self.total(self.player_hand) == 21 and len(self.player_hand) == 2: self.multiplier = _cfg["large_multiplier"] + self.boost
+			won = self.bet * self.multiplier
+			self.parent.econ.set_balance_from_d_id(self.player.id, self.parent.econ.get_balance_from_d_id(self.player.id) + won)
 			self.embed_dict["color"] = 0x00ff00
-			self.embed_dict["title"] = f"You won ${self.bet*multiplier}!"
+			self.embed_dict["title"] = f"You won ${won}!"
 		elif self.total(self.dealer_hand) > self.total(self.player_hand) or self.total(self.player_hand) > 21: ## if lost
 			self.embed_dict["color"] = 0xff0000
 			self.embed_dict["title"] = f"You lost ${self.bet}!"
