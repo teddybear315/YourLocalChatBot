@@ -164,19 +164,22 @@ class games(Extension):
 		l.log(f"Chance outcome: {ctx.author.name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | Multiplier:{multiplier}x ({boost}) | CPU:{cpu_score}", channel=l.DISCORD)
 	
 	
-	@commands.command(name="21", aliases=["bj", "blackjack"], usage=f"{prefix}21 <bet:float>")
-	async def blackjack(self, ctx, bet: float = None):
+	@commands.command(name="21", aliases=["bj", "blackjack"], usage=f"{prefix}21 <bet:float> [decks:int]")
+	async def blackjack(self, ctx, bet: float = 0, decks: int = 4):
 		"""Basic version of blackjack"""
 		bet = round(bet, 2) 
 		## important checks needed to play the game lol
 		if not bet: 
 			await ctx.send(f"{ctx.author.mention}, please specify a bet")
 			return
+		if not decks:
+			await ctx.send(f"{ctx.author.mention}, you cannot play with 0 decks")
+			return
 		if not await self.can_user_play(ctx, self.config.data["games"]["blackjack"], bet, self.econ.get_balance_from_d_id(ctx.author.id)): return
 		## logging the successful start of a bj game
 		l.log(f"Blackjack start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet}", channel=l.DISCORD)
 		
-		bj = Blackjack(ctx,self,bet)
+		bj = Blackjack(ctx,self,bet, decks)
 		await bj.game()
 		
 		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{Blackjack.total(bj.player_hand)} | Bet:${bet} | Multiplier:{bj.multiplier}x ({bj.boost}) | CPU:{Blackjack.total(bj.dealer_hand)}", channel=l.DISCORD)
