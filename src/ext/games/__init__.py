@@ -33,6 +33,7 @@ class games(Extension):
 		chance = random.randint(1,100)
 		if chance < 60:
 			l.log("Airdrop Spawned")
+			claimed = False
 			money = random.randint(10,1000)
 			embed_dict = {
 				"title":"Airdrop!",
@@ -58,11 +59,15 @@ class games(Extension):
 			
 			msg: discord.Message = await channel.send("@here", embed=embed)
 			await msg.add_reaction("🛄")
-			def check(reaction: discord.Reaction, user: discord.Member): return user != self.bot.user and str(reaction.emoji) == "🛄"
-			reaction, user = await self.bot.wait_for("reaction_add", check=check) #(":baggage_claim:")
-			l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
-			self.econ.set_balance_from_d_id(user.id, self.econ.get_balance_from_d_id(user.id) + money)
-			if item: self.items.add_item_to_inventory_from_d_id(user.id, item["id"])
+			while not claimed:
+				def check(reaction: discord.Reaction, user: discord.Member): return user != self.bot.user and str(reaction.emoji) == "🛄"
+				reaction, user = await self.bot.wait_for("reaction_add", check=check) #(":baggage_claim:")
+				l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
+				try:
+					self.econ.set_balance_from_d_id(user.id, self.econ.get_balance_from_d_id(user.id) + money)
+					if item: self.items.add_item_to_inventory_from_d_id(user.id, item["id"])
+				except: pass
+				else: claimed = True
 			
 			embed_dict["title"] = "Claimed!"
 			embed_dict["timestamp"] = datetime.datetime.now().isoformat()
