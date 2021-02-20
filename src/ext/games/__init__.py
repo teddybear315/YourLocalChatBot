@@ -60,21 +60,22 @@ class games(Extension):
 			msg: discord.Message = await channel.send("@here", embed=embed)
 			await msg.add_reaction("🛄")
 			while not claimed:
-				def check(reaction: discord.Reaction, user: discord.Member): return user != self.bot.user and str(reaction.emoji) == "🛄"
-				reaction, user = await self.bot.wait_for("reaction_add", check=check) #(":baggage_claim:")
-				l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
+				def check(payload: discord.RawReactionActionEvent): return payload.user_id != self.bot.user and str(payload.emoji) == "🛄" and payload.message_id == self.msg.id
+				payload = await self.parent.bot.wait_for("raw_reaction_add", check=check)
+				
 				try:
-					self.econ.set_balance_from_d_id(user.id, self.econ.get_balance_from_d_id(user.id) + money)
-					if item: self.items.add_item_to_inventory_from_d_id(user.id, item["id"])
-				except: pass
-				else: claimed = True
+					self.econ.set_balance_from_d_id(payload.user.id, self.econ.get_balance_from_d_id(payload.user.id) + money)
+					if item: self.items.add_item_to_inventory_from_d_id(upayload.ser.id, item["id"])
+				else:
+					claimed = True
+					l.log(f"{payload.user.display_name}#{payload.user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
 			
 			embed_dict["title"] = "Claimed!"
 			embed_dict["timestamp"] = datetime.datetime.now().isoformat()
 			embed_dict["color"] = 0x00ff00
 			embed_dict["author"] = {
-				"name": user.display_name,
-				"icon_url": str(user.avatar_url)
+				"name": payload.user.display_name,
+				"icon_url": str(payload.user.avatar_url)
 			}
 			
 			embed = discord.Embed.from_dict(embed_dict)
@@ -153,9 +154,9 @@ class games(Extension):
 		boost = self.items.get_boost_from_d_id(ctx.author.id)
 		multiplier = 1 + boost
 		if p_score > cpu_score:
-			won = bet*multiplier
 			multiplier = _cfg["small_multiplier"] + boost
 			if p_score == 21: multiplier = _cfg["large_multiplier"] + boost
+			won = bet*multiplier
 			self.econ.set_balance_from_d_id(ctx.author.id, points + won)
 			embed_dict["color"] = 0x00ff00
 			embed_dict["title"] = f"You won ${won}!"
