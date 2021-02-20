@@ -65,7 +65,7 @@ class games(Extension):
 				
 				try:
 					self.econ.set_balance_from_d_id(payload.user.id, self.econ.get_balance_from_d_id(payload.user.id) + money)
-					if item: self.items.add_item_to_inventory_from_d_id(upayload.ser.id, item["id"])
+					if item: self.items.add_item_to_inventory_from_d_id(payload.ser.id, item["id"])
 				else:
 					claimed = True
 					l.log(f"{payload.user.display_name}#{payload.user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
