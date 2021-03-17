@@ -38,7 +38,7 @@ class economy(Extension):
 	def clear_transaction_history_from_id(self, discord_id: int)						-> dict	:
 		return self.set_transaction_history(discord_id, [])
 	def push_transaction_history_from_id(self, discord_id: int, place:str, amount:int)	-> dict	:
-		thCur: list[dict] = self.get_transaction_history_from_id(discord_id)
+		thCur: dict = self.get_transaction_history_from_id(discord_id)
 		if len(thCur) >= 3:
 			for x in range(len(thCur) - 2):
 				thCur.pop()
