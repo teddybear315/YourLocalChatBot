@@ -151,6 +151,7 @@ class twitch(Extension):
 	@tasks.loop(seconds=60)
 	async def checker(self):
 		l.log("Checking twitch...")
+		print(utils.ylcb_config.data["discord"]["announcement_channel_id"])
 		if await self.check(self.bot.get_channel(utils.ylcb_config.data["discord"]["announcement_channel_id"])):
 			l.log("Check Successful")
 	

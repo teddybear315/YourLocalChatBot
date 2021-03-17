@@ -60,12 +60,13 @@ class games(Extension):
 			msg: discord.Message = await channel.send("@here", embed=embed)
 			await msg.add_reaction("🛄")
 			while not claimed:
-				def check(payload: discord.RawReactionActionEvent): return payload.user_id != self.bot.user and str(payload.emoji) == "🛄" and payload.message_id == self.msg.id
-				payload = await self.parent.bot.wait_for("raw_reaction_add", check=check)
+				def check(payload: discord.RawReactionActionEvent): return payload.user_id != self.bot.user and str(payload.emoji) == "🛄" and payload.message_id == msg.id
+				payload = await self.bot.wait_for("raw_reaction_add", check=check)
 				
 				try:
 					self.econ.set_balance_from_d_id(payload.user.id, self.econ.get_balance_from_d_id(payload.user.id) + money)
 					if item: self.items.add_item_to_inventory_from_d_id(payload.ser.id, item["id"])
+				except: claimed = False
 				else:
 					claimed = True
 					l.log(f"{payload.user.display_name}#{payload.user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
@@ -185,7 +186,7 @@ class games(Extension):
 		## logging the successful start of a bj game
 		l.log(f"Blackjack start: {ctx.author.display_name}#{ctx.author.discriminator} | Bet:${bet}", channel=l.DISCORD)
 		
-		bj = Blackjack(ctx,self,bet, decks)
+		bj = Blackjack(ctx, self, bet, decks)
 		await bj.game()
 		
 		l.log(f"Blackjack outcome: {ctx.author.display_name}#{ctx.author.discriminator}:{Blackjack.total(bj.player_hand)} | Bet:${bet} | Multiplier:{bj.multiplier}x ({bj.boost}) | CPU:{Blackjack.total(bj.dealer_hand)}", channel=l.DISCORD)

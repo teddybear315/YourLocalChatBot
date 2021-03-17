@@ -4,9 +4,18 @@ Extensions:
 		☐ Lottery ticket
 		✔ blackjack.config hitOnSoft17: bool @done (2/17/2021, 2:53:52 PM)
 		☐ FIX https://konner.go-outsi.de/kWyl04.png
+		☐ Transaction history
 		Hub:
 			☐ Add hub command
 			☐ Show menu of games and let user select and play game
 			☐ Return user to hub after game finishes
 			☐ Show outcome 
-
+Bot:
+	impliment into launcher and use subprocesses to control actual bot, so bot shuts down, updates, and restarts
+	Check for and install update:
+	☐ Webserver hosting an api
+		☐ GET request on API to get current version
+		☐ Download new version
+		how:
+			has to be in own file that never gets updated
+			src/update.py

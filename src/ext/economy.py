@@ -9,6 +9,9 @@ from modules.utilities import utilities as u
 
 from ext import Extension
 
+obj_transaction_entry = {"place": "", "amount": 0}
+obj_transaction :list[obj_transaction_entry]
+
 
 class economy(Extension):
 	"""Economy Extension - ylcb-devs"""
@@ -18,19 +21,33 @@ class economy(Extension):
 		self.db = bot.get_cog("database").db
 	
 	
-	def get_balance_from_d_id(self, discord_id: int)				-> float:
+	def get_balance_from_d_id(self, discord_id: int)									-> float		:
 		"""Returns the given user's balance"""
 		return self.db.cursor().execute("SELECT balance FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
-	def set_balance_from_d_id(self, discord_id: int, bal: int)		-> float:
+	def set_balance_from_d_id(self, discord_id: int, bal: int)							-> float		:
 		"""Returns and sets a given users balance to bal"""
 		self.db.execute("UPDATE Users SET balance=:bal WHERE discord_id=:d_id", {"bal": round(bal, 2), "d_id": discord_id})
 		self.db.commit()
 		return round(bal, 2)
-	def can_pay_amount(self, sender: discord.Member, amount: int)	-> bool	:
+	def can_pay_amount(self, sender: discord.Member, amount: int)						-> bool			:
 		"""Returns if balance can be paid"""
 		snd_bal = self.get_balance_from_d_id(sender.id)
 		return snd_bal > amount
-	
+	def get_transaction_history_from_id(self, discord_id: int)							-> list[dict]	:
+		return self.db.cursor().execute("SELECT transaction_history FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fecthone()[0]
+	def set_transaction_history_from_id(self, discord_id: int, value: dict) 			-> dict			: 
+		self.db.execute("UPDATE Users SET transaction_history=:th WHERE discord_id=:d_id", {"th": value, "d_id": discord_id})
+		self.db.commit()
+		return value
+	def clear_transaction_history_from_id(self, discord_id: int)						-> dict			: 
+		return self.set_transaction_history(discord_id, [])
+	def push_transaction_history_from_id(self, discord_id: int, place:str, amount:int)	-> dict			: 
+		thCur: list[dict] = self.get_transaction_history_from_id(discord_id)
+		if len(thCur) >= 3:
+			for x in range(len(thCur) - 2):
+				thCur.pop()
+		thCur.insert(0,{"place": place, "amount": amount})
+		return thCur
 	
 	@commands.command(name="balance", aliases=["bal"], usage=f"{prefix}balance [user:user]")
 	async def balance(self,ctx, user: discord.Member = None):
@@ -50,6 +67,17 @@ class economy(Extension):
 				"icon_url": str(user.avatar_url)
 			}
 		}
+		th = self.get_transaction_history_from_id(user.id)
+		values: list = []
+		for entry in th:
+			if th["amount"] > 0 : emoji = "🟩"
+			else: emoji = "🟥"
+			if len(th["place"]) > 20: 
+				th["place"] = th["place"][:20]
+				th["place"][19] = "…"
+			value = f"{emoji}\t{th['place'].ljust(20)}\t{th['amount']}"
+			values.append(value)
+		embed_dict["fields"].push({"name": "Transaction History", "value": "\n".join(values)})
 		embed = discord.Embed.from_dict(embed_dict)
 		await ctx.send(embed=embed)
 	
@@ -101,10 +129,13 @@ class economy(Extension):
 			if str(payload.emoji) == "✅":
 				embed_dict["title"] = "Check [ACCEPTED]"
 				embed_dict["color"] = 0x00ff00
-				try: self.set_balance_from_d_id(reciever.id, self.get_balance_from_d_id(reciever.id)-amount)
+				try:
+					self.set_balance_from_d_id(reciever.id, self.get_balance_from_d_id(reciever.id)-amount)
+					self.push_transaction_history_from_id(ctx.author.id, "Transfer", -1*amount)
 				except Exception as e: l.log(e, l.ERR, l.DISCORD)
-				else: self.set_balance_from_d_id(ctx.author.id, self.get_balance_from_d_id(ctx.author.id)+amount)
+				else:self.set_balance_from_d_id(ctx.author.id, self.get_balance_from_d_id(ctx.author.id)+amount)
 				self.set_balance_from_d_id(reciever.id, self.get_balance_from_d_id(reciever.id)+amount)
+				self.push_transaction_history_from_id(reciever.id, "Transfer", amount)
 				l.log(f"Check: {ctx.author.display_name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{reciever.display_name}#{reciever.discriminator} | Status: ACCEPTED,PAID", channel=l.DISCORD)
 			elif str(payload.emoji) == "❎":
 				embed_dict["title"] = "Check [DECLINED]"
@@ -151,9 +182,12 @@ class economy(Extension):
 			if str(payload.emoji) == "✅":
 				embed_dict["title"] = "Money Request [ACCEPTED]"
 				embed_dict["color"] = 0x00ff00
-				try: self.set_balance_from_d_id(sender.id, self.get_balance_from_d_id(sender.id)-amount)
+				try:
+					self.set_balance_from_d_id(sender.id, self.get_balance_from_d_id(sender.id)-amount)
+					self.push_transaction_history_from_id(sender.id, "Transfer", amount*-1)
 				except Exception as e: l.log(e, l.ERR, l.DISCORD)
 				else: self.set_balance_from_d_id(ctx.author.id, self.get_balance_from_d_id(ctx.author.id)+amount)
+				self.push_transaction_history_from_id(ctx.author.id, "Transfer", amount)
 				l.log(f"Money Request: {ctx.author.display_name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.display_name}#{sender.discriminator} | Status: ACCEPTED,PAID", channel=l.DISCORD)
 			elif str(payload.emoji) == "❎":
 				embed_dict["title"] = "Money Request [DECLINED]"
@@ -171,7 +205,9 @@ class economy(Extension):
 	
 	@commands.command(name="go_broke", aliases=["0"], usage=f"{prefix}go_broke")
 	async def go_broke(self, ctx):
-		try: self.set_balance_from_d_id(ctx.author.id, 0)
+		try:
+			self.set_balance_from_d_id(ctx.author.id, 0)
+			self.clear_transaction_history_from_id(ctx.author.id)
 		except Exception as e: l.log(e, l.ERR, l.DISCORD)
 		else: await ctx.send(f"{ctx.author.mention}, congrats you're broke...")
 	
@@ -182,7 +218,10 @@ class economy(Extension):
 	@u.is_admin()
 	async def set_balance(self, ctx, user: discord.Member, amount: float = 0):
 		"""Set the given user's balance to amount"""
-		try: self.set_balance_from_d_id(user.id, amount)
+		try:
+			self.set_balance_from_d_id(user.id, amount)
+			self.clear_transaction_history_from_id(user.id)
+			self.push_transaction_history_from_id(user.id, "Admin Set Amount", amount)
 		except Exception as e: l.log(e, l.ERR, l.DISCORD)
 		else: await ctx.send(f"{ctx.author.mention}, {user.mention}'s balance is now ${amount}")
 	@set_balance.error
@@ -195,7 +234,9 @@ class economy(Extension):
 	@u.is_admin()
 	async def add_balance(self, ctx, user: discord.Member, amount: float):
 		"""Add an amount to the given user's balance"""
-		try: self.set_balance_from_d_id(user.id, self.get_balance_from_d_id(user.id) + amount)
+		try: 
+			self.set_balance_from_d_id(user.id, self.get_balance_from_d_id(user.id) + amount)
+			self.push_transaction_history_from_id(ctx.author.id, "Admin Added Amount", amount)
 		except Exception as e: l.log(e, l.ERR, l.DISCORD)
 		else: await ctx.send(f"{ctx.author.mention}, {user.mention}'s balance is now ${self.get_balance_from_d_id(user.id)}")
 	@add_balance.error
@@ -208,7 +249,9 @@ class economy(Extension):
 	@u.is_admin()
 	async def sub_balance(self, ctx, user: discord.Member, amount: float):
 		"""Subtract an amount from the given user's balance"""
-		try: self.set_balance_from_d_id(user.id, self.get_balance_from_d_id(user.id) - amount)
+		try:
+			self.set_balance_from_d_id(user.id, self.get_balance_from_d_id(user.id) - amount)
+			self.push_transaction_history_from_id(ctx.author.id, "Admin Removed Amount", amount*-1)
 		except Exception as e: l.log(e, l.ERR, l.DISCORD)
 		else: await ctx.send(f"{ctx.author.mention}, {user.mention}'s balance is now ${self.get_balance_from_d_id(user.id)}")
 	@sub_balance.error

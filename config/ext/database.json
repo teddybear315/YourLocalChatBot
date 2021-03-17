@@ -7,6 +7,7 @@
 		{"name":"response",			"default": "{}"	},
 		{"name":"balance",			"default": 100	},
 		{"name":"inventory",		"default": ""	},
-		{"name":"boost",			"default": 0	}
+		{"name":"boost",			"default": 0	},
+		{"name":"transaction_history",			"default": null	}
 	]
 }
