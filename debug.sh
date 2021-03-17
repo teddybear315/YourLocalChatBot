@@ -1,9 +1,3 @@
 #!/bin/bash
-timestamp() {
-    date +"%Y-%m-%d %H-%M-%S"
-}
-filename() {
-    "./logs/"$(timestamp)".txt"
-}
-
+touch ./logs/$(date +"%Y-%m-%d_%H-%M-%S").txt
 python3 ./src/main.py --debug | filename
