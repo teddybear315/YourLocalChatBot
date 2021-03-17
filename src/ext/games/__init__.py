@@ -1,6 +1,7 @@
 import datetime
 import os
 import random
+from sys import argv
 
 import discord
 import modules.utilities as utils
@@ -30,10 +31,11 @@ class games(Extension):
 	
 	@tasks.loop(hours=1)
 	async def airdrop_spawner(self):
+		if "--debug" in argv:
+			return
 		chance = random.randint(1,100)
 		if chance < 60:
 			l.log("Airdrop Spawned")
-			claimed = False
 			money = random.randint(10,1000)
 			embed_dict = {
 				"title":"Airdrop!",
@@ -57,27 +59,27 @@ class games(Extension):
 			embed = discord.Embed.from_dict(embed_dict)
 			channel = await self.bot.fetch_channel(ylcb_config.data["discord"]["event_channel_id"])
 			
+			claimed = False
 			msg: discord.Message = await channel.send("@here", embed=embed)
 			await msg.add_reaction("🛄")
-			while not claimed:
-				def check(payload: discord.RawReactionActionEvent): return payload.user_id != self.bot.user and str(payload.emoji) == "🛄" and payload.message_id == msg.id
-				payload = await self.bot.wait_for("raw_reaction_add", check=check)
-				
-				try:
-					self.econ.set_balance_from_d_id(payload.user.id, self.econ.get_balance_from_d_id(payload.user.id) + money)
-					self.econ.push_transaction_history_from_id(payload.user.id, "Airdrop", money)
-					if item: self.items.add_item_to_inventory_from_d_id(payload.ser.id, item["id"])
-				except: claimed = False
-				else:
-					claimed = True
-					l.log(f"{payload.user.display_name}#{payload.user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
+			def check(payload: discord.RawReactionActionEvent): return payload.user_id != self.bot.user and str(payload.emoji) == "🛄" and payload.message_id == msg.id
+			payload = await self.bot.wait_for("raw_reaction_add", check=check)
+			user = self.bot.fetch_user(payload.user_id)
+			try:
+				self.econ.set_balance_from_d_id(payload.user_id, self.econ.get_balance_from_d_id(payload.user.id) + money)
+				self.econ.push_transaction_history_from_id(payload.user_id, "Airdrop", money)
+				if item: self.items.add_item_to_inventory_from_d_id(payload.user_id, item["id"])
+			except: claimed = False
+			else:
+				claimed = True
+				l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
 			
 			embed_dict["title"] = "Claimed!"
 			embed_dict["timestamp"] = datetime.datetime.now().isoformat()
 			embed_dict["color"] = 0x00ff00
 			embed_dict["author"] = {
-				"name": payload.user.display_name,
-				"icon_url": str(payload.user.avatar_url)
+				"name": user.display_name,
+				"icon_url": str(user.avatar_url)
 			}
 			
 			embed = discord.Embed.from_dict(embed_dict)
@@ -160,11 +162,13 @@ class games(Extension):
 			if p_score == 21: multiplier = _cfg["large_multiplier"] + boost
 			won = bet*multiplier
 			self.econ.set_balance_from_d_id(ctx.author.id, points + won)
+			self.econ.push_transaction_history_from_id(ctx.author.id, "Chance Roll", won)
 			embed_dict["color"] = 0x00ff00
 			embed_dict["title"] = f"You won ${won}!"
 		elif cpu_score > p_score:
 			embed_dict["color"] = 0xff0000
 			embed_dict["title"] = f"You lost ${bet}!"
+			self.econ.push_transaction_history_from_id(ctx.author.id, "Chance Roll", bet*-1)
 		elif cpu_score == p_score:
 			self.econ.set_balance_from_d_id(ctx.author.id, points + bet)
 		embed = discord.Embed.from_dict(embed_dict)

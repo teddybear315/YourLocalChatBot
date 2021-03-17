@@ -7,6 +7,7 @@ from discord.ext import commands
 from ext import Extension
 from modules.utilities import logger as l
 from modules.utilities import prefix
+from sys import argv
 
 
 class database(Extension):
@@ -15,7 +16,8 @@ class database(Extension):
 		"""Database(bot)"""
 		super().__init__(bot, "ext.database")
 		self.columns:dict = self.config.data["columns"]
-		self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/main.db')
+		if "--debug" not in argv: self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/main.db')
+		else: self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/testing.db')
 	
 	
 	def add_new_user(self, user: discord.Member):

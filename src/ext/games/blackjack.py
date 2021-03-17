@@ -170,11 +170,13 @@ class Blackjack:
 			if self.total(self.player_hand) == 21 and len(self.player_hand) == 2: self.multiplier = _cfg["large_multiplier"] + self.boost
 			won = self.bet * self.multiplier
 			self.parent.econ.set_balance_from_d_id(self.player.id, self.parent.econ.get_balance_from_d_id(self.player.id) + won)
+			self.econ.push_transaction_history_from_id(self.player.id, "Blackjack", won)
 			self.embed_dict["color"] = 0x00ff00
 			self.embed_dict["title"] = f"You won ${won}!"
 		elif self.total(self.dealer_hand) > self.total(self.player_hand) or self.total(self.player_hand) > 21: ## if lost
 			self.embed_dict["color"] = 0xff0000
 			self.embed_dict["title"] = f"You lost ${self.bet}!"
+			self.econ.push_transaction_history_from_id(self.player.id, "Blackjack", self.bet*-1)
 		else: ## if push
 			self.embed_dict["title"] = "Push!"
 			self.embed_dict["color"] = 0xffdd00

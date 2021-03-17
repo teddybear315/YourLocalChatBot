@@ -1,4 +1,4 @@
-import datetime
+import datetime, json
 
 import discord
 import modules.utilities as utils
@@ -17,32 +17,35 @@ class economy(Extension):
 		self.db = bot.get_cog("database").db
 	
 	
-	def get_balance_from_d_id(self, discord_id: int)									-> float:
+	def get_balance_from_d_id(self, discord_id: int)										-> float:
 		"""Returns the given user's balance"""
 		return self.db.cursor().execute("SELECT balance FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
-	def set_balance_from_d_id(self, discord_id: int, bal: int)							-> float:
+	def set_balance_from_d_id(self, discord_id: int, bal: int)								-> float:
 		"""Returns and sets a given users balance to bal"""
 		self.db.execute("UPDATE Users SET balance=:bal WHERE discord_id=:d_id", {"bal": round(bal, 2), "d_id": discord_id})
 		self.db.commit()
 		return round(bal, 2)
-	def can_pay_amount(self, sender: discord.Member, amount: int)						-> bool	:
+	def can_pay_amount(self, sender: discord.Member, amount: int)							-> bool	:
 		"""Returns if balance can be paid"""
 		snd_bal = self.get_balance_from_d_id(sender.id)
 		return snd_bal > amount
-	def get_transaction_history_from_id(self, discord_id: int)							-> list	:
-		return self.db.cursor().execute("SELECT transaction_history FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
-	def set_transaction_history_from_id(self, discord_id: int, value: dict) 			-> dict	:
-		self.db.execute("UPDATE Users SET transaction_history=:th WHERE discord_id=:d_id", {"th": value, "d_id": discord_id})
+	def get_transaction_history_from_id(self, discord_id: int)								-> list	:
+		th = self.db.cursor().execute("SELECT transaction_history FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
+		l.log(th, l.FLG)
+		return json.loads(th.replace("\'", "\""))
+	def set_transaction_history_from_id(self, discord_id: int, value: list) 				-> list	:
+		self.db.execute("UPDATE Users SET transaction_history=:th WHERE discord_id=:d_id", {"th": f"{{value}}", "d_id": discord_id})
 		self.db.commit()
 		return value
-	def clear_transaction_history_from_id(self, discord_id: int)						-> dict	:
+	def clear_transaction_history_from_id(self, discord_id: int)							-> dict	:
 		return self.set_transaction_history(discord_id, [])
-	def push_transaction_history_from_id(self, discord_id: int, place:str, amount:int)	-> dict	:
+	def push_transaction_history_from_id(self, discord_id: int, place: str, amount: float)	-> dict	:
 		thCur: dict = self.get_transaction_history_from_id(discord_id)
 		if len(thCur) >= 3:
 			for x in range(len(thCur) - 2):
 				thCur.pop()
 		thCur.insert(0,{"place": place, "amount": amount})
+		self.set_transaction_history_from_id(discord_id, thCur)
 		return thCur
 	
 	@commands.command(name="balance", aliases=["bal"], usage=f"{prefix}balance [user:user]")
@@ -63,17 +66,15 @@ class economy(Extension):
 				"icon_url": str(user.avatar_url)
 			}
 		}
-		th = self.get_transaction_history_from_id(user.id)
-		values: list = []
+		th: list = self.get_transaction_history_from_id(user.id)
+		if th: embed_dict["fields"].append({"name": "Transaction History", "value": "Your 3 recent transactions"})
 		for entry in th:
-			if th["amount"] > 0 : emoji = "🟩"
+			if entry["amount"] > 0 : emoji = "🟩"
 			else: emoji = "🟥"
-			if len(th["place"]) > 20: 
-				th["place"] = th["place"][:20]
-				th["place"][19] = "…"
-			value = f"{emoji}\t{th['place'].ljust(20)}\t{th['amount']}"
-			values.append(value)
-		embed_dict["fields"].push({"name": "Transaction History", "value": "\n".join(values)})
+			if len(entry["place"]) > 20: 
+				entry["place"] = entry["place"][:20]
+				entry["place"][19] = "…"
+			embed_dict["fields"].append({"name": f"{emoji} {entry['place'].ljust(20)}", "value": f"{entry['amount']}"})
 		embed = discord.Embed.from_dict(embed_dict)
 		await ctx.send(embed=embed)
 	
