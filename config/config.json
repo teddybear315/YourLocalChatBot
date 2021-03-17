@@ -9,10 +9,10 @@
 		324332386219327488
 	],
 	"meta": {
-		"version": "1.2.1",
-		"build_number": 2,
+		"version": "1.2.2",
+		"build_number": 1,
 		"changelog": [
-			"Fixed a bug where `secrets.json` wasnt updated after a build number change"
+			"Safely closes database on close"
 		]
 	},
 	"discord": {

@@ -236,6 +236,8 @@ async def dev_error(ctx, error):
 @u.is_dev()
 async def stop(ctx):
 	"""Safely stop the bot"""
+	db = bot.get_cog("database").db
+	if db: db.close()
 	await ctx.send(f"Goodbye.")
 	await bot.close()
 	l.log("Successfully logged out and closed. Exiting...", l.FLG, l.DISCORD)

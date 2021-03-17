@@ -64,7 +64,7 @@ class games(Extension):
 			await msg.add_reaction("🛄")
 			def check(payload: discord.RawReactionActionEvent): return payload.user_id != self.bot.user and str(payload.emoji) == "🛄" and payload.message_id == msg.id
 			payload = await self.bot.wait_for("raw_reaction_add", check=check)
-			user = self.bot.fetch_user(payload.user_id)
+			user = await self.bot.fetch_user(payload.user_id)
 			try:
 				self.econ.set_balance_from_d_id(payload.user_id, self.econ.get_balance_from_d_id(payload.user.id) + money)
 				self.econ.push_transaction_history_from_id(payload.user_id, "Airdrop", money)

@@ -19,7 +19,6 @@ class database(Extension):
 		if "--debug" not in argv: self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/main.db')
 		else: self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/testing.db')
 	
-	
 	def add_new_user(self, user: discord.Member):
 		params: dict = {}
 		values_str = ""
@@ -32,7 +31,6 @@ class database(Extension):
 		
 		self.db.execute(f"INSERT INTO Users VALUES ({values_str})", params)
 		self.db.commit()
-	
 	
 	@commands.Cog.listener()
 	async def on_member_join(self, user: discord.Member):
