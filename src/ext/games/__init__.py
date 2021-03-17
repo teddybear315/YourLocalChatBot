@@ -65,6 +65,7 @@ class games(Extension):
 				
 				try:
 					self.econ.set_balance_from_d_id(payload.user.id, self.econ.get_balance_from_d_id(payload.user.id) + money)
+					self.econ.push_transaction_history_from_id(payload.user.id, "Airdrop", money)
 					if item: self.items.add_item_to_inventory_from_d_id(payload.ser.id, item["id"])
 				except: claimed = False
 				else:

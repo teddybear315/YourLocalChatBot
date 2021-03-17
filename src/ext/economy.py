@@ -30,7 +30,7 @@ class economy(Extension):
 		snd_bal = self.get_balance_from_d_id(sender.id)
 		return snd_bal > amount
 	def get_transaction_history_from_id(self, discord_id: int)							-> list	:
-		return self.db.cursor().execute("SELECT transaction_history FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fecthone()[0]
+		return self.db.cursor().execute("SELECT transaction_history FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
 	def set_transaction_history_from_id(self, discord_id: int, value: dict) 			-> dict	:
 		self.db.execute("UPDATE Users SET transaction_history=:th WHERE discord_id=:d_id", {"th": value, "d_id": discord_id})
 		self.db.commit()

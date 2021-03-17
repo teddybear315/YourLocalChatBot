@@ -21,12 +21,10 @@ class database(Extension):
 	def add_new_user(self, user: discord.Member):
 		params: dict = {}
 		values_str = ""
-		i = 1
 		
 		for item in self.config.data["columns"]:
 			params[item["name"]] = item["default"]
 			values_str += f":{item['name']},"
-			i += 1
 		values_str = values_str[:-1]
 		params["discord_id"] = user.id
 		
