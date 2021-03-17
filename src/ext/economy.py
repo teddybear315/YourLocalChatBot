@@ -9,10 +9,6 @@ from modules.utilities import utilities as u
 
 from ext import Extension
 
-obj_transaction_entry = {"place": "", "amount": 0}
-obj_transaction :list[obj_transaction_entry]
-
-
 class economy(Extension):
 	"""Economy Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
