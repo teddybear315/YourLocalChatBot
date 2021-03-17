@@ -17,27 +17,27 @@ class economy(Extension):
 		self.db = bot.get_cog("database").db
 	
 	
-	def get_balance_from_d_id(self, discord_id: int)									-> float		:
+	def get_balance_from_d_id(self, discord_id: int)									-> float:
 		"""Returns the given user's balance"""
 		return self.db.cursor().execute("SELECT balance FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
-	def set_balance_from_d_id(self, discord_id: int, bal: int)							-> float		:
+	def set_balance_from_d_id(self, discord_id: int, bal: int)							-> float:
 		"""Returns and sets a given users balance to bal"""
 		self.db.execute("UPDATE Users SET balance=:bal WHERE discord_id=:d_id", {"bal": round(bal, 2), "d_id": discord_id})
 		self.db.commit()
 		return round(bal, 2)
-	def can_pay_amount(self, sender: discord.Member, amount: int)						-> bool			:
+	def can_pay_amount(self, sender: discord.Member, amount: int)						-> bool	:
 		"""Returns if balance can be paid"""
 		snd_bal = self.get_balance_from_d_id(sender.id)
 		return snd_bal > amount
-	def get_transaction_history_from_id(self, discord_id: int)							-> list[dict]	:
+	def get_transaction_history_from_id(self, discord_id: int)							-> list	:
 		return self.db.cursor().execute("SELECT transaction_history FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fecthone()[0]
-	def set_transaction_history_from_id(self, discord_id: int, value: dict) 			-> dict			: 
+	def set_transaction_history_from_id(self, discord_id: int, value: dict) 			-> dict	:
 		self.db.execute("UPDATE Users SET transaction_history=:th WHERE discord_id=:d_id", {"th": value, "d_id": discord_id})
 		self.db.commit()
 		return value
-	def clear_transaction_history_from_id(self, discord_id: int)						-> dict			: 
+	def clear_transaction_history_from_id(self, discord_id: int)						-> dict	:
 		return self.set_transaction_history(discord_id, [])
-	def push_transaction_history_from_id(self, discord_id: int, place:str, amount:int)	-> dict			: 
+	def push_transaction_history_from_id(self, discord_id: int, place:str, amount:int)	-> dict	:
 		thCur: list[dict] = self.get_transaction_history_from_id(discord_id)
 		if len(thCur) >= 3:
 			for x in range(len(thCur) - 2):
