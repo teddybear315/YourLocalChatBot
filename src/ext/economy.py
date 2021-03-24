@@ -1,4 +1,6 @@
-import datetime, json
+import datetime
+import json
+from asyncio import sleep
 
 import discord
 import modules.utilities as utils
@@ -8,6 +10,7 @@ from modules.utilities import prefix
 from modules.utilities import utilities as u
 
 from ext import Extension
+
 
 class economy(Extension):
 	"""Economy Extension - ylcb-devs"""
@@ -31,10 +34,9 @@ class economy(Extension):
 		return snd_bal > amount
 	def get_transaction_history_from_id(self, discord_id: int)								-> list	:
 		th = self.db.cursor().execute("SELECT transaction_history FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
-		l.log(th, l.FLG)
-		return json.loads(th.replace("\'", "\""))
+		return json.loads(th.replace("\'","\""))
 	def set_transaction_history_from_id(self, discord_id: int, value: list) 				-> list	:
-		self.db.execute("UPDATE Users SET transaction_history=:th WHERE discord_id=:d_id", {"th": f"{{value}}", "d_id": discord_id})
+		self.db.execute("UPDATE Users SET transaction_history=:th WHERE discord_id=:d_id", {"th": str(value), "d_id": discord_id})
 		self.db.commit()
 		return value
 	def clear_transaction_history_from_id(self, discord_id: int)							-> dict	:
@@ -67,14 +69,16 @@ class economy(Extension):
 			}
 		}
 		th: list = self.get_transaction_history_from_id(user.id)
-		if th: embed_dict["fields"].append({"name": "Transaction History", "value": "Your 3 recent transactions"})
-		for entry in th:
-			if entry["amount"] > 0 : emoji = "🟩"
-			else: emoji = "🟥"
-			if len(entry["place"]) > 20: 
-				entry["place"] = entry["place"][:20]
-				entry["place"][19] = "…"
-			embed_dict["fields"].append({"name": f"{emoji} {entry['place'].ljust(20)}", "value": f"{entry['amount']}"})
+		if th:
+			embed_dict["fields"].append({"name": "Transaction History", "value": "Your 3 recent transactions"})
+			for entry in th:
+				entry: dict
+				if entry["amount"] > 0 : emoji = "🟩"
+				else: emoji = "🟥"
+				if len(entry["place"]) > 20: 
+					entry["place"] = entry["place"][:20]
+					entry["place"][19] = "…"
+				embed_dict["fields"].append({"name": f"{emoji} {entry['place'].ljust(20)}", "value": str(entry['amount'])})
 		embed = discord.Embed.from_dict(embed_dict)
 		await ctx.send(embed=embed)
 	
@@ -106,6 +110,7 @@ class economy(Extension):
 			msg: dicsord.Message = await ctx.send(f"Are you sure you want to pay this user ${amount}",embed=embed)
 			await msg.add_reaction("✅")
 			await msg.add_reaction("❎")
+			await sleep(0.3)
 			def check(payload: discord.RawReactionActionEvent): return payload.user_id == ctx.author.id and str(payload.emoji) in ["✅", "❎"] and payload.message_id == msg.id
 			payload = await self.bot.wait_for("raw_reaction_add", check=check)
 			
@@ -120,6 +125,8 @@ class economy(Extension):
 			
 			embed = discord.Embed.from_dict(embed_dict)
 			await msg.edit(content=reciever.mention,embed=embed)
+			
+			await sleep(0.3)
 			def check(payload: discord.RawReactionActionEvent): return payload.member == reciever and str(payload.emoji) in ["✅", "❎"] and payload.message_id == msg.id
 			payload = await self.bot.wait_for("raw_reaction_add", check=check)
 			
@@ -173,6 +180,8 @@ class economy(Extension):
 			msg: dicsord.Message = await ctx.send(sender.mention,embed=embed)
 			await msg.add_reaction("✅")
 			await msg.add_reaction("❎")
+			
+			await sleep(0.3)
 			def check(payload: discord.RawReactionActionEvent): return payload.member == sender and str(payload.emoji) in ["✅", "❎"] and payload.message_id == msg.id
 			payload = await self.bot.wait_for("raw_reaction_add", check=check)
 			

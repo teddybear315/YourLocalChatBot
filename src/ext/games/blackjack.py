@@ -3,6 +3,7 @@ import os
 import random
 
 import discord
+from asyncio import sleep
 import modules.utilities as utils
 from ext import Extension
 from modules.utilities import logger as l
@@ -13,15 +14,20 @@ class Blackjack:
 	card_strs = ["alert a developer if you see this", "🇦", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🇯", "🇶", "🇰"]
 	
 	
-	def __init__(self, ctx, parent: Extension, bet: float, decks: int):
+	def __init__(self, bot, ctx, bet: float, decks: int, game_msg = None):
+		self.bot = bot
 		self.deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]*decks
 		self.bet = bet
 		self.ctx = ctx
-		self.parent = parent
+		self.parent: games = self.bot.get_cog("games")
+		self.msg = game_msg
 		self.player = ctx.author
 		self.dealer_hand = self.deal()
 		self.player_hand = self.deal()
-		self.boost = self.parent.bot.get_cog("items").get_boost_from_d_id(self.player.id)
+		self.boost = self.bot.get_cog("items").get_boost_from_d_id(self.player.id)
+		self.outcome = 0
+		if game_msg: self.hub = True
+		else: self.hub = False
 	
 	async def game(self):
 		self.embed_dict = {
@@ -48,14 +54,18 @@ class Blackjack:
 			self.playing = False
 			await self.update_embed(self.dealer_hand, self.player_hand)
 		
-		self.msg: discord.Message = await self.ctx.send(embed=discord.Embed.from_dict(self.embed_dict))
+		if not self.msg:
+			self.msg: discord.Message = await self.ctx.send(embed=discord.Embed.from_dict(self.embed_dict))
+		else: await self.msg.edit(embed=discord.Embed.from_dict(self.embed_dict))
+		
 		if self.playing:
 			await self.msg.add_reaction("🔴")
 			await self.msg.add_reaction("🟢")
 		
 		while self.playing:
+			await sleep(0.3)
 			def check(payload: discord.RawReactionActionEvent): return payload.user_id == self.player.id and str(payload.emoji) in ["🔴","🟢"] and payload.message_id == self.msg.id
-			payload = await self.parent.bot.wait_for("raw_reaction_add", check=check)
+			payload = await self.bot.wait_for("raw_reaction_add", check=check)
 			
 			if str(payload.emoji) == "🟢":
 				self.hit(self.player_hand)
@@ -168,15 +178,16 @@ class Blackjack:
 		if (self.total(self.player_hand) > self.total(self.dealer_hand) or self.total(self.dealer_hand) > 21) and self.total(self.player_hand) <= 21: ## if won
 			self.multiplier = _cfg["small_multiplier"] + self.boost
 			if self.total(self.player_hand) == 21 and len(self.player_hand) == 2: self.multiplier = _cfg["large_multiplier"] + self.boost
-			won = self.bet * self.multiplier
-			self.parent.econ.set_balance_from_d_id(self.player.id, self.parent.econ.get_balance_from_d_id(self.player.id) + won)
-			self.econ.push_transaction_history_from_id(self.player.id, "Blackjack", won)
+			self.outcome = self.bet * self.multiplier
+			self.parent.econ.set_balance_from_d_id(self.player.id, self.parent.econ.get_balance_from_d_id(self.player.id) + self.outcome)
+			self.parent.econ.push_transaction_history_from_id(self.player.id, "Blackjack", self.outcome)
 			self.embed_dict["color"] = 0x00ff00
-			self.embed_dict["title"] = f"You won ${won}!"
+			self.embed_dict["title"] = f"You won ${self.outcome}!"
 		elif self.total(self.dealer_hand) > self.total(self.player_hand) or self.total(self.player_hand) > 21: ## if lost
 			self.embed_dict["color"] = 0xff0000
 			self.embed_dict["title"] = f"You lost ${self.bet}!"
-			self.econ.push_transaction_history_from_id(self.player.id, "Blackjack", self.bet*-1)
+			self.parent.econ.push_transaction_history_from_id(self.player.id, "Blackjack", self.bet*-1)
+			self.outcome = self.bet*-1
 		else: ## if push
 			self.embed_dict["title"] = "Push!"
 			self.embed_dict["color"] = 0xffdd00
