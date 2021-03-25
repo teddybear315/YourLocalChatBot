@@ -94,7 +94,7 @@ class game_hub:
 			if str(response.emoji) in ["🃏","🎲"]:
 				self.emoji = str(response.emoji)
 			if str(response.emoji) == "❌":
-				return
+				await self.stop()
 			self.state = "pre_betting"
 		
 		if self.state == "pre_betting":

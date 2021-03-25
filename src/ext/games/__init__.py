@@ -193,9 +193,8 @@ class games(Extension):
 		elif cpu_score == p_score:
 			self.econ.set_balance_from_d_id(ctx.author.id, points + bet)
 		embed = discord.Embed.from_dict(embed_dict)
-		if not msg:
-			await ctx.send(embed=embed)
-		else: msg.edit(embed=embed)
+		if not msg: await ctx.send(embed=embed)
+		else: await msg.edit(embed=embed)
 		
 		l.log(f"Chance outcome: {ctx.author.name}#{ctx.author.discriminator}:{p_score} | Bet:${bet} | Multiplier:{multiplier}x ({boost}) | CPU:{cpu_score}", channel=l.DISCORD)
 		if hub: return outcome
