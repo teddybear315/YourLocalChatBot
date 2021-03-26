@@ -9,10 +9,10 @@
 		300062241858912257
 	],
 	"meta": {
-		"version": "1.2.2",
+		"version": "1.2.3",
 		"build_number": 1,
 		"changelog": [
-			"Safely closes database on close"
+			"Suggestion messages now reach developers with timestamps"
 		]
 	},
 	"discord": {

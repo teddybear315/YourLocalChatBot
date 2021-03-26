@@ -136,9 +136,20 @@ async def on_member_remove(user: discord.Member):
 @bot.event
 async def on_message(message: discord.Message):
 	if message.channel == suggestionChannel:
-		embed = discord.Embed(title="New Feature Request!", color=0x8000ff)
-		embed.set_author(name=f"{message.author.display_name}#{message.author.discriminator}", icon_url=message.author.avatar_url)
-		embed.add_field(name="Request", value=message.content, inline=True)
+		embed_dict = {
+			"title": "Feature Request",
+			"timestamp": datetime.datetime.now().isoformat(),
+			"type": "rich",
+			"color": 0x8000ff,
+			"author": {
+				"name": f"{message.author.display_name}#{message.author.discriminator}",
+				"icon_url": message.author.avatar_url
+			},
+			"fields": [
+				{"name": "Request", "value": message.content} 
+			]
+		}
+		embed = discord.Embed(embed=discord.Embed.from_dict(embed_dict))
 		if message.author.id not in ylcb_config.data["devs"]:
 			await message.author.send("Your request has been sent to the developers. They will respond as soon as possible. The embed below is what they have recieved.", embed=embed)
 		l.log(f"Request from {message.author.display_name}#{message.author.discriminator} recieved", channel=l.DISCORD)
