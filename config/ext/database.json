@@ -1,5 +1,4 @@
 {
-	"extension_type": 0,
 	"columns": [
 		{"name":"twitch_username",	"default": null	},
 		{"name":"message_id",		"default": null	},

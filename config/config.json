@@ -5,8 +5,8 @@
 		"description": "A bot doin its job"
 	},
 	"devs": [
-		203232520920104960,
-		324332386219327488
+		324332386219327488,
+		300062241858912257
 	],
 	"meta": {
 		"version": "1.2.2",
@@ -20,7 +20,7 @@
 		"changelog_channel_id": 802736425870688266,
 		"suggestion_channel_id": 802741003453857863,
 		"welcome_channel_id": 802740915630374952,
-		"announcement_channel_id": 802740768225624085,
+		"announcement_channel_id": 825099615589105664,
 		"event_channel_id": 805535613867786261,
 		"member_role_id": 802752009862250506,
 		"streamer_role_id": 802750798025981982

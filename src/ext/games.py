@@ -104,17 +104,20 @@ class games(Extension):
 	async def hub(self, ctx):
 		hub = Hub(self.bot, ctx)
 		await hub.start()
+		del hub
 	
 	
 	@commands.command(name="chance", usage=f"{prefix}chance <bet:float>")
 	async def chance(self, ctx, bet: float = None):
 		game = Dice(self.bot,ctx,bet)
 		await game.start()
+		del game
 	
 	@commands.command(name="21", aliases=["bj", "blackjack"], usage=f"{prefix}21 <bet:float> [decks:int]")
 	async def blackjack(self, ctx, bet: float = 0, decks: int = 4):
 		game = Blackjack(self.bot,ctx,bet,decks=decks)
 		await game.start()
+		del game
 	
 	async def can_user_play(self, ctx, _cfg: dict, bet: float, points: float, msg):
 		bet = round(bet, 2)
@@ -207,7 +210,7 @@ class Hub:
 			"fields": [
 				{"name": "Games Played", "value": f"{self.games_played}", "inline": True },
 				{"name": "Session Outcome", "value": f"${self.session_outcome}", "inline": True },
-				{"name": "Avg. $ per Game", "value": f"${(self.session_outcome/self.games_played)}", "inline": True },
+				{"name": "Avg. $ per Game", "value": f"${(self.session_outcome/(self.games_played if self.games_played else 1))}", "inline": True },
 				{"name": "Current Balance", "value": f"${self.cog.econ.get_balance_from_d_id(self.player.id)}", "inline": True },
 			],
 			"author": {
@@ -287,7 +290,8 @@ class Hub:
 			self.emoji = str(response.emoji)
 		if str(response.emoji) == "❌":
 			self.gsm.set_state(self.state_exit)
-		self.gsm.set_state(self.state_betting)
+		else:
+			self.gsm.set_state(self.state_betting)
 	
 	
 	async def betting(self):
@@ -732,7 +736,7 @@ class Dice(Game):
 			if self.p_score == 2: multiplier = _cfg["large_multiplier"] + self.boost
 			payout = self.bet*multiplier
 			self.outcome = payout - self.bet
-			self.cog.econ.set_balance_from_d_id(self.player.id, points + self.outcome)
+			self.cog.econ.set_balance_from_d_id(self.player.id, points + payout)
 			self.cog.econ.push_transaction_history_from_id(self.player.id, "Chance Roll", self.outcome)
 			if not self.in_hub:
 				embed_dict["color"] = 0x00ff00
@@ -746,5 +750,7 @@ class Dice(Game):
 		elif self.cpu_score == self.p_score:
 			self.cog.econ.set_balance_from_d_id(self.player.id, points + self.bet)
 		l.log(f"Chance outcome: {self.player.name}#{self.player.discriminator}:{self.p_score} | Bet:${self.bet} | Multiplier:{multiplier}x ({self.boost}) | CPU:{self.cpu_score}", channel=l.DISCORD)
-		if self.in_hub: await self.stop()
-		else: await self.msg.edit(embed=discord.Embed.from_dict(embed_dict))
+		if not self.in_hub:
+			try: await self.msg.edit(embed=discord.Embed.from_dict(embed_dict))
+			except: self.msg = self.ctx.send(embed=discord.Embed.from_dict(embed_dict))
+		await self.stop()
