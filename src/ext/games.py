@@ -558,7 +558,7 @@ class Blackjack(CardGame):
 			self.cog.econ.push_transaction_history_from_id(self.player.id, "Blackjack", payout)
 			if not self.in_hub:
 				self.embed_dict["color"] = 0x00ff00
-				self.embed_dict["title"] = f"You won ${payout}!"
+				self.embed_dict["title"] = f"You won ${self.outcome}!"
 		elif self.total(self.dealer_hand) > self.total(self.player_hand) or self.total(self.player_hand) > 21: ## if lost
 			self.outcome = self.bet*-1
 			self.cog.econ.push_transaction_history_from_id(self.player.id, "Blackjack", self.outcome)
@@ -574,9 +574,7 @@ class Blackjack(CardGame):
 		
 		self.cog.items.reset_boost_from_d_id(self.player.id)
 		l.log(f"Blackjack outcome: {self.player.display_name}#{self.player.discriminator}:{Blackjack.total(self.player_hand)} | Bet:${self.bet} | Multiplier:{self.multiplier}x ({self.boost}) | CPU:{Blackjack.total(self.dealer_hand)}", channel=l.DISCORD)
-		if not self.in_hub: 
-			try: await self.msg.edit(embed=discord.Embed.from_dict(self.embed_dict))
-			except: self.msg = self.ctx.send(embed=discord.Embed.from_dict(self.embed_dict))
+		if not self.in_hub: await self.msg.edit(embed=discord.Embed.from_dict(self.embed_dict))
 		await self.stop()
 	
 	
@@ -740,7 +738,7 @@ class Dice(Game):
 			self.cog.econ.push_transaction_history_from_id(self.player.id, "Chance Roll", self.outcome)
 			if not self.in_hub:
 				embed_dict["color"] = 0x00ff00
-				embed_dict["title"] = f"You won ${payout}!"
+				embed_dict["title"] = f"You won ${self.outcome}!"
 		elif self.cpu_score > self.p_score:
 			self.outcome = self.bet*-1
 			if not self.in_hub:
@@ -752,5 +750,5 @@ class Dice(Game):
 		l.log(f"Chance outcome: {self.player.name}#{self.player.discriminator}:{self.p_score} | Bet:${self.bet} | Multiplier:{multiplier}x ({self.boost}) | CPU:{self.cpu_score}", channel=l.DISCORD)
 		if not self.in_hub:
 			try: await self.msg.edit(embed=discord.Embed.from_dict(embed_dict))
-			except: self.msg = self.ctx.send(embed=discord.Embed.from_dict(embed_dict))
+			except: self.msg = await self.ctx.send(embed=discord.Embed.from_dict(embed_dict))
 		await self.stop()

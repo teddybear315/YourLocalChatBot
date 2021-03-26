@@ -5,8 +5,8 @@ Extensions:
 		☐ Betting api
 		☐ Lottery ticket
 		☐ add board games or card games
-		☐ fix chance command
-		☐ hub continues to update current balance after closed
+		✔ fix chance command @done (3/26/2021, 6:11:36 PM)
+		✔ hub continues to update current balance after closed @done (3/26/2021, 6:06:17 PM)
 		☐ give airdrop error more details
 	☐ beginning of each database api call: if user doesn't exist create entry
 	☐ if not already: on join: add member role, and add to database
