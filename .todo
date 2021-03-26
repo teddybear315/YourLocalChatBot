@@ -2,6 +2,7 @@ Extensions:
 	Games:
 		☐ Betting api
 		☐ Lottery ticket
+	Basic info extension
 Bot:
 	impliment into launcher and use subprocesses to control actual bot, so bot shuts down, updates, and restarts
 	Check for and install update:
