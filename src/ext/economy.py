@@ -10,6 +10,7 @@ from modules.utilities import prefix
 from modules.utilities import utilities as u
 
 from ext import Extension
+from ext.database import database
 
 
 class economy(Extension):
@@ -17,27 +18,25 @@ class economy(Extension):
 	def __init__(self, bot: commands.Bot):
 		"""Economy(bot)"""
 		super().__init__(bot, "ext.economy")
-		self.db = bot.get_cog("database").db
+		self.db: database = bot.get_cog("database")
 	
 	
 	def get_balance_from_d_id(self, discord_id: int)										-> float:
 		"""Returns the given user's balance"""
-		return self.db.cursor().execute("SELECT balance FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
+		return self.db.select("Users", "balance", "discord_id", discord_id)
 	def set_balance_from_d_id(self, discord_id: int, bal: int)								-> float:
 		"""Returns and sets a given users balance to bal"""
-		self.db.execute("UPDATE Users SET balance=:bal WHERE discord_id=:d_id", {"bal": round(bal, 2), "d_id": discord_id})
-		self.db.commit()
+		self.db.update("Users", "balance", round(bal, 2), "discord_id", discord_id)
 		return round(bal, 2)
-	def can_pay_amount(self, sender: discord.Member, amount: int)							-> bool	:
+	def can_pay_amount(self, sender_id: int, amount: int)									-> bool	:
 		"""Returns if balance can be paid"""
-		snd_bal = self.get_balance_from_d_id(sender.id)
+		snd_bal = self.get_balance_from_d_id(sender_id)
 		return snd_bal > amount
 	def get_transaction_history_from_id(self, discord_id: int)								-> list	:
-		th = self.db.cursor().execute("SELECT transaction_history FROM Users WHERE discord_id=:d_id", {"d_id": discord_id}).fetchone()[0]
+		th = self.db.select("Users", "transaction_history", "discord_id", discord_id)
 		return json.loads(th.replace("\'","\""))
 	def set_transaction_history_from_id(self, discord_id: int, value: list) 				-> list	:
-		self.db.execute("UPDATE Users SET transaction_history=:th WHERE discord_id=:d_id", {"th": str(value), "d_id": discord_id})
-		self.db.commit()
+		self.db.update("Users", "transaction_history", str(value), "discord_id", discord_id)
 		return value
 	def clear_transaction_history_from_id(self, discord_id: int)							-> dict	:
 		return self.set_transaction_history(discord_id, [])
@@ -90,7 +89,7 @@ class economy(Extension):
 			await ctx.send(f"{ctx.author.mention}, you cannot send money to yourself")
 			return
 		amount = round(amount, 2)
-		if self.can_pay_amount(ctx.author, amount):
+		if self.can_pay_amount(ctx.author.id, amount):
 			l.log(f"Check: {ctx.author.display_name}#{ctx.author.discriminator} | Amount:${amount} | Reciever:{reciever.display_name}#{reciever.discriminator} | Status: AWAITING APPROVAL", channel=l.DISCORD)
 			self.set_balance_from_d_id(ctx.author.id, self.get_balance_from_d_id(ctx.author.id)-amount)
 			embed_dict = {
@@ -161,7 +160,7 @@ class economy(Extension):
 		if sender == ctx.author:
 			await ctx.send(f"{ctx.author.mention}, you cannot request money from yourself")
 			return
-		if self.can_pay_amount(sender, amount):
+		if self.can_pay_amount(sender.id, amount):
 			l.log(f"Money Request: {ctx.author.display_name}#{ctx.author.discriminator} | Amount:${amount} | Payer:{sender.display_name}#{sender.discriminator} | Status: APPROVED,PENDING", channel=l.DISCORD)
 			embed_dict = {
 				"title":"Money Request [PENDING]",

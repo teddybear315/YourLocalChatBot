@@ -20,7 +20,6 @@ class games(Extension):
 		"""Games(bot)"""
 		super().__init__(bot, "ext.games")
 		self.econ = bot.get_cog("economy")
-		self.db = bot.get_cog("database").db
 		self.items = bot.get_cog("items")
 		self.airdrop_spawner.start()
 	
