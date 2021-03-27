@@ -110,12 +110,12 @@ async def on_ready():
 				if not bot._BotBase__extensions.__contains__(f"ext.{requirement}") and requirement != "":
 					try: bot.load_extension(f"ext.{requirement}")
 					except Exception as e: 
-						l.log(f"Could not load requirement {requirement} for {extension}, removing extension {extension}", l.ERR, l.DISCORD)
-						l.log(e,l.ERR,l.DISCORD)
+						l.log(f"\tCould not load requirement {requirement}", l.ERR, l.DISCORD)
+						l.log(f"\t{e}",l.ERR,l.DISCORD)
 						bot.remove_cog(f"ext.{extension}")
 						loadable = False
-					else: l.log(f"Loaded requirement {requirement}", channel=l.DISCORD)
-				else: l.log(f"Requirement {requirement} met", channel=l.DISCORD)
+					else: l.log(f"\tLoaded requirement {requirement}", channel=l.DISCORD)
+				else: l.log(f"\tRequirement {requirement} met", channel=l.DISCORD)
 		except KeyError: pass
 		if loadable:
 			try: bot.load_extension(f"ext.{extension}")
