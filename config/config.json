@@ -10,7 +10,7 @@
 	],
 	"meta": {
 		"version": "1.2.3",
-		"build_number": 1,
+		"build_number": 2,
 		"changelog": [
 			"Suggestion messages now reach developers with timestamps"
 		]

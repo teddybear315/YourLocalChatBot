@@ -1,7 +1,7 @@
 """ This is a template for a single-file extension.  - ylcb-devs """
+from discord.ext import commands
 from modules.utilities import logger as l
 
-from discord.ext import commands
 from ext import Extension
 
 

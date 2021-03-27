@@ -8,11 +8,13 @@ from typing import Union
 import discord
 import modules.utilities as utils
 from discord.ext import commands, tasks
-from ext import Extension
 from modules.utilities import logger as l
 from modules.utilities import prefix, secrets
 from modules.utilities import utilities as u
 from modules.utilities import ylcb_config
+
+from ext import Extension
+
 
 class games(Extension):
 	"""Games Extension - ylcb-devs"""
