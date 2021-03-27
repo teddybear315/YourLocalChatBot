@@ -103,8 +103,7 @@ utilities = Utilities()
 logger = Logger()
 
 
-debugging = ("--debug" in argv)
-if debugging:
+if "--debug" in argv:
 	prefix = ylcb_config.data["bot"]["dev_prefix"]
 else:
 	prefix = ylcb_config.data["bot"]["prefix"]
