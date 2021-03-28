@@ -12,6 +12,7 @@ from modules.utilities import utilities as u
 from modules.utilities import ylcb_config
 
 from ext import Extension
+from ext.database import database
 
 
 class twitch(Extension):
@@ -19,7 +20,7 @@ class twitch(Extension):
 	def __init__(self, bot: commands.Bot):
 		"""Twitch(bot)"""
 		super().__init__(bot, "ext.twitch")
-		self.db = bot.get_cog("database")
+		self.db = bot.get_cog("database").db
 		self.checker.start()
 	
 	
@@ -42,7 +43,8 @@ class twitch(Extension):
 			return
 		
 		await user.add_roles(await self.bot.fetch_guild(ylcb_config.data["discord"]["guild_id"]).get_role(ylcb_config.data["discord"]["streamer_role_id"]))
-		self.db.update("Users", "twitch_username", twitch_username, "discord_id", user.id)
+		self.db.cursor().execute("UPDATE Users SET twitch_username=? WHERE discord_id=?", (twitch_username, user.id))
+		self.db.commit()
 		await ctx.send(f"{user.mention}, {ctx.author.mention} has made you a streamer!")
 	
 	
@@ -62,7 +64,7 @@ class twitch(Extension):
 	
 	async def check(self, streamerChannel: discord.TextChannel) -> bool:
 		"""Checks if a streamer is live and if so announces it"""
-		for streamer in self.db.db.cursor().execute("SELECT * FROM Users").fetchall():
+		for streamer in self.db.execute("SELECT * FROM Users").fetchall():
 			if not streamer[0]:
 				continue
 			username = streamer[0]
@@ -109,7 +111,7 @@ class twitch(Extension):
 						{"name": "Viewers", "value": streamData["viewer_count"], "inline": True}
 					],
 					"author": {
-						"name": user.display_name,
+						"name": u.discordify(user.display_name),
 						"icon_url": str(user.avatar_url)
 					},
 					"thumbnail": {
@@ -129,19 +131,21 @@ class twitch(Extension):
 					l.log(f"\t\t{username} is now live, announcing stream...")
 					if "--debug" not in argv:	msg = await streamerChannel.send(f"@everyone {user.mention} is live!", embed=embed)
 					else:						msg = await streamerChannel.send(f"{user.mention} is live!", embed=embed)
-					self.db.update("Users", "message_id", msg.id, "twitch_username", username)
+					self.db.cursor().execute("UPDATE Users SET message_id=? WHERE twitch_username=?", (msg.id, username))
+					self.db.commit()
 				elif response != streamData:
 					msg = await streamerChannel.fetch_message(streamer[1])
 					l.log(f"\t\tUpdating {username}\'s live message...")
 					if "--debug" not in argv:	msg = await msg.edit(content=f"@everyone {user.mention} is live!", embed=embed)
 					else:						msg = await msg.edit(content=f"{user.mention} is live!", embed=embed)
-					self.db.update("Users", "response", json.dumps(streamData), "twitch_username", username)
+					self.db.cursor().execute("UPDATE Users SET response=? WHERE twitch_username=?", (json.dumps(streamData), username))
+					self.db.commit()
 			elif streamer[1]:
 				l.log(f"\t\t{username} is no longer live, deleting message...")
 				msg = await streamerChannel.fetch_message(streamer[1])
 				await msg.delete()
-				self.db.update("Users", "message_id", None, "twitch_username", username)
-				self.db.update("Users", "response", "{}", "twitch_username", username)
+				self.db.cursor().execute("UPDATE Users SET message_id=?,response=? WHERE twitch_username=?", (None, "{}", username))
+				self.db.commit()
 		return True
 	
 	

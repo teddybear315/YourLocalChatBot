@@ -131,7 +131,7 @@ async def on_member_join(user: discord.Member):
 
 @bot.event
 async def on_member_remove(user: discord.Member):
-	await welcomeChannel.send(f"We will miss you, {user.display_name}")
+	await welcomeChannel.send(f"We will miss you, {u.discordify(user.display_name)}")
 
 
 @bot.event
@@ -143,7 +143,7 @@ async def on_message(message: discord.Message):
 			"type": "rich",
 			"color": 0x8000ff,
 			"author": {
-				"name": f"{message.author.display_name}#{message.author.discriminator}",
+				"name": f"{u.discordify(message.author.name)}#{message.author.discriminator}",
 				"icon_url": message.author.avatar_url
 			},
 			"fields": [
@@ -153,7 +153,7 @@ async def on_message(message: discord.Message):
 		embed = discord.Embed(embed=discord.Embed.from_dict(embed_dict))
 		if message.author.id not in ylcb_config.data["devs"]:
 			await message.author.send("Your request has been sent to the developers. They will respond as soon as possible. The embed below is what they have recieved.", embed=embed)
-		l.log(f"Request from {message.author.display_name}#{message.author.discriminator} recieved", channel=l.DISCORD)
+		l.log(f"Request from {u.discordify(message.author.name)}#{message.author.discriminator} recieved", channel=l.DISCORD)
 		
 		for dev in ylcb_config.data["devs"]:
 			developer: discord.User = await bot.fetch_user(dev)

@@ -9,10 +9,10 @@
 		300062241858912257
 	],
 	"meta": {
-		"version": "1.2.3",
-		"build_number": 3,
+		"version": "1.2.4",
+		"build_number": 1,
 		"changelog": [
-			"Suggestion messages now reach developers with timestamps"
+			"Added 'discordify' function so usernames wont print with discord's markdown"
 		]
 	},
 	"discord": {

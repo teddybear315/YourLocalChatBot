@@ -46,7 +46,7 @@ class Logger:
 	@staticmethod
 	def log(msg, lvl = LOG, channel = SYSTEM):
 		"""Decent logging system"""
-		timestamp = str(datetime.datetime.now().isoformat(timespec='seconds')).replace('T', ' ')
+		timestamp = str(datetime.datetime.now().isoformat(timespec="seconds")).replace("T", " ")
 		
 		prefix = "LOG"
 		color = "white"
@@ -73,6 +73,11 @@ class Logger:
 
 class Utilities:
 	"""Utilities class"""
+	@staticmethod
+	def discordify(string: str) -> str:
+		return string.replace("_", "\_").replace("*", "\*").replace("`", "\`").replace("~", "\~").replace(">", "\>")
+	
+	
 	@staticmethod
 	def is_admin() -> bool:
 		"""Returns if user is an admin"""
@@ -102,8 +107,8 @@ secrets = Config("secrets.json")
 utilities = Utilities()
 logger = Logger()
 
-
-if "--debug" in argv:
+debugging = ("--debug" in argv)
+if debugging:
 	prefix = ylcb_config.data["bot"]["dev_prefix"]
 else:
 	prefix = ylcb_config.data["bot"]["prefix"]

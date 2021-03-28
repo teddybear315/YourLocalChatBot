@@ -5,8 +5,11 @@ Extensions:
 		☐ Betting api
 		☐ Lottery ticket
 		☐ add board games or card games
-		☐ give airdrop error more details
-	Basic info extension
+	☐ Basic info extension
+	☐ birthdays
+	☐ command that sends an embed
+	☐ reaction roles
+	☐ basic admin commands
 Bot:
 	impliment into launcher and use subprocesses to control actual bot, so bot shuts down, updates, and restarts
 	

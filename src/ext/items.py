@@ -15,7 +15,7 @@ class items(Extension):
 	def __init__(self, bot: commands.Bot):
 		"""items(bot)"""
 		super().__init__(bot, "ext.items")
-		self.db: database = bot.get_cog("database")
+		self.db: database = bot.get_cog("database").db
 	
 	
 	def get_item_from_id				(self, item_id: int)						-> dict	:
@@ -23,12 +23,13 @@ class items(Extension):
 		return self.config.data["items"][item_id]
 	def get_inventory_from_d_id			(self, discord_id: int)						-> list	:
 		"""Returns given user's inventory"""
-		inv = self.db.select("Users", "inventory", "discord_id", discord_id)
+		inv = self.db.execute("SELECT inventory FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
 		if inv: return [int(x) for x in inv.split(",")]
 		return []
 	def set_inventory_from_d_id			(self, discord_id: int, inventory: list)	-> list	:
 		"""Returns and sets the given user's inventory value to inventory"""
-		self.db.update("Users", "inventory", ",".join([str(_item) for _item in inventory]), "discord_id", discord_id)
+		self.db.cursor().execute("UPDATE Users SET inventory=? WHERE discord_id=?", (",".join([str(_item) for _item in inventory]), discord_id))
+		self.db.commit()
 		return inventory
 	def add_item_to_inventory_from_d_id	(self, discord_id: int, item_id: int)		-> dict	:
 		"""Returns and adds an item to the given user's inventory"""
@@ -48,10 +49,11 @@ class items(Extension):
 		return self.get_item_from_id(item_id)
 	def get_boost_from_d_id				(self, discord_id: int)						-> float:
 		"""Returns given user's current boost value"""
-		return float(self.db.select("Users", "boost", "discord_id", discord_id))
+		return float(self.db.execute("SELECT boost FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0])
 	def set_boost_from_d_id				(self, discord_id: int, boost_value: int)	-> int	:
 		"""Returns and sets given users boost value to boost_value"""
-		self.db.update("Users", "boost", boost_value, "discord_id", discord_id)
+		self.db.cursor().execute("UPDATE Users SET boost=? WHERE discord_id=?", (boost_value, discord_id))
+		self.db.commit()
 		return boost_value
 	def reset_boost_from_d_id			(self, discord_id: int)						-> int	:
 		"""Returns and sets user's boost value to 0"""
@@ -59,10 +61,10 @@ class items(Extension):
 	
 	
 	@commands.command(name="give_item", usage=f"{prefix}give <reciever:user> <item_id:int>")
-	async def give_item(self, ctx, reciever: discord.Member, item_id): 
+	async def give_item(self, ctx, reciever: discord.Member, item_id: int): 
 		item = self.trash_item_from_d_id(ctx.author.id, item_id)
 		self.add_item_to_inventory_from_d_id(reciever.id, item["id"])
-		await ctx.send(f"{ctx.author.mention}, you have given {item.name} to {reciever.mention}")
+		await ctx.send(f"{ctx.author.mention}, you have given {item['name']} to {reciever.mention}")
 	
 	
 	@commands.command(name="view", usage=f"{prefix}view <item_id:int>")
@@ -77,7 +79,7 @@ class items(Extension):
 			"timestamp": datetime.datetime.now().isoformat(),
 			"color": 0x6275be,
 			"author": {
-				"name": ctx.author.display_name,
+				"name": u.discordify(ctx.author.display_name),
 				"icon_url": str(ctx.author.avatar_url)
 			}
 		}
@@ -99,21 +101,21 @@ class items(Extension):
 		"""Open your inventory"""
 		if not user: user = ctx.author
 		inv = self.get_inventory_from_d_id(user.id)
-		fields = []
-		if not inv:
-			fields = [{"name": "Your inventory is empty :(", "value": "Get items from airdrops!"}]
+		description = ""
+		if not inv: description = "Your inventory is empty :( Get some items from airdrops!"
 		else:
 			for _id in inv:
 				item = self.get_item_from_id(_id)
-				fields.append({"name": f"{item['name']} [#{_id}]", "value": item["desc"], "inline":True})
+				description = description + f"{item['name']} [#{_id}]: {item['desc']}\n"
+		description.strip()
 		embed_dict = {
 			"title":"Inventory",
 			"type": "rich",
 			"timestamp": datetime.datetime.now().isoformat(),
 			"color": 0x6275be,
-			"fields": fields,
+			"description": description,
 			"author": {
-				"name": user.display_name,
+				"name": u.discordify(user.display_name),
 				"icon_url": str(user.avatar_url)
 			}
 		}

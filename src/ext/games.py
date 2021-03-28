@@ -11,7 +11,7 @@ from discord.ext import commands, tasks
 from modules.utilities import logger as l
 from modules.utilities import prefix, secrets
 from modules.utilities import utilities as u
-from modules.utilities import ylcb_config
+from modules.utilities import ylcb_config, debugging
 
 from ext import Extension
 
@@ -32,22 +32,19 @@ class games(Extension):
 	
 	@tasks.loop(hours=1)
 	async def airdrop_spawner(self):
-		if "--debug" in argv:
-			return
 		chance = random.randint(1,100)
+		if debugging: chance = 0
 		if chance < 60:
 			l.log("Airdrop Spawned")
 			money = random.randint(10,1000)
 			embed_dict = {
 				"title":"Airdrop!",
+				"description": f"Money: ${money}\n",
 				"type": "rich",
 				"timestamp": datetime.datetime.now().isoformat(),
 				"color": 0xff8800,
-				"fields": [
-					{"name": "Money:", "value": "$"+str(money)}
-				],
 				"author": {
-					"name": self.bot.user.display_name,
+					"name": u.discordify(self.bot.user.display_name),
 					"icon_url": str(self.bot.user.avatar_url)
 				}
 			}
@@ -55,42 +52,44 @@ class games(Extension):
 			rand_id = random.randint(1,10)
 			try: item = self.items.get_item_from_id(rand_id)
 			except: item = None
-			if item: embed_dict["fields"].append({"name": "Contains:", "value": "1x "+item["name"]})
+			if item: embed_dict["description"] = embed_dict["description"] + f"Items: 1x {item['name']}"
 			
 			embed = discord.Embed.from_dict(embed_dict)
 			channel = await self.bot.fetch_channel(ylcb_config.data["discord"]["event_channel_id"])
-			
-			msg: discord.Message = await channel.send("@here", embed=embed)
+			if debugging: msg: discord.Message = await channel.send(embed=embed)
+			else: msg: discord.Message = await channel.send("@here", embed=embed)
 			await msg.add_reaction("🛄")
+			
 			await sleep(0.3)
 			def check(payload: discord.RawReactionActionEvent): return payload.user_id != self.bot.user and str(payload.emoji) == "🛄" and payload.message_id == msg.id
 			payload = await self.bot.wait_for("raw_reaction_add", check=check)
 			claimed = False
 			user = await self.bot.fetch_user(payload.user_id)
+			reason = ""
 			try:
 				self.econ.set_balance_from_d_id(payload.user_id, self.econ.get_balance_from_d_id(payload.user_id) + money)
 				self.econ.push_transaction_history_from_id(payload.user_id, "Airdrop", money)
 				if item: self.items.add_item_to_inventory_from_d_id(payload.user_id, item["id"])
-			except: claimed = False
+			except Exception as e:
+				claimed = False
+				reason = str(e)
 			else:
 				claimed = True
-				l.log(f"{user.display_name}#{user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
+				l.log(f"{user.name}#{user.discriminator} claimed an airdrop worth ${money}", channel=l.DISCORD)
 			
 			if claimed:
 				embed_dict["title"] = "Claimed!"
 				embed_dict["timestamp"] = datetime.datetime.now().isoformat()
 				embed_dict["color"] = 0x00ff00
 				embed_dict["author"] = {
-					"name": user.display_name,
+					"name": u.discordify(user.display_name),
 					"icon_url": str(user.avatar_url)
 				}
 			else:
 				embed_dict["title"] = "Error!"
 				embed_dict["timestamp"] = datetime.datetime.now().isoformat()
 				embed_dict["color"] = 0xff0000
-				embed_dict["fields"] = [{
-					"name": "Error:", "value": "There was an error collecting airdrop rewards"
-				}]
+				embed_dict["description"] = f"Error: There was an error collecting airdrop rewards\nReason: {reason}"
 			embed = discord.Embed.from_dict(embed_dict)
 			await msg.edit(content=None, embed=embed)
 	
@@ -170,7 +169,7 @@ class Hub:
 			"color": 0x0000ff,
 			"fields": [],
 			"author": {
-				"name": self.bot.user.display_name,
+				"name": u.discordify(self.bot.user.display_name),
 				"icon_url": str(self.bot.user.avatar_url)
 			}
 		}
@@ -212,13 +211,14 @@ class Hub:
 				{"name": "Games Played", "value": f"{self.games_played}", "inline": True },
 				{"name": "Session Outcome", "value": f"${self.session_outcome}", "inline": True },
 				{"name": "Avg. $ per Game", "value": f"${(self.session_outcome/(self.games_played if self.games_played else 1))}", "inline": True },
-				{"name": "Current Balance", "value": f"${self.cog.econ.get_balance_from_d_id(self.player.id)}", "inline": True },
+				{"name": "Current Balance", "value": f"${self.cog.econ.get_balance_from_d_id(self.player.id)}"},
 			],
 			"author": {
-				"name": self.player.display_name,
+				"name": u.discordify(self.player.display_name),
 				"icon_url": str(self.player.avatar_url)
-			},
+			}
 		}
+		self.update_timestamp()
 		await self.msg.edit(embed=discord.Embed.from_dict(self.embed_dict))
 		await self.msg.clear_reactions()
 		await self.gsm.get_state()[1]()
@@ -235,44 +235,40 @@ class Hub:
 			"title": f"Bet: ${str(self.bet)}",
 			"color": 0x0000ff,
 			"fields": [
-				{"name": "🔴", "value":"+$1", "inline":True},
-				{"name": "🟠", "value":"+$5", "inline":True},
-				{"name": "🟡", "value":"+$10", "inline":True},
-				{"name": "🟢", "value":"+$50", "inline":True},
-				{"name": "🔵", "value":"+$100", "inline":True},
-				{"name": "🟣", "value":"+$500", "inline":True},
-				{"name": "⚫", "value":"+$1000", "inline":True},
-				{"name": "✅", "value":"Start Game", "inline":True},
+				{"name": "🔴", "value": "+$1", "inline": True},
+				{"name": "🟠", "value": "+$5", "inline": True},
+				{"name": "🟡", "value": "+$10", "inline": True},
+				{"name": "🟢", "value": "+$50", "inline": True},
+				{"name": "🔵", "value": "+$100", "inline": True},
+				{"name": "🟣", "value": "+$500", "inline": True},
+				{"name": "⚫", "value": "+$1000", "inline": True},
+				{"name": "✅", "value": "Start Game", "inline": True},
 			],
 			"author": {
-				"name": self.bot.user.display_name,
+				"name": u.discordify(self.bot.user.display_name),
 				"icon_url": str(self.bot.user.avatar_url)
 			}
 		}
-		if self.prev_bet: self.embed_dict["fields"].append({"name": "⬅️", "value":"Previous Bet", "inline":True})
+		if self.prev_bet: self.embed_dict["fields"].append({"name": "⬅️", "value": "Last Bet", "inline": True})
 		await self.msg.edit(embed=discord.Embed.from_dict(self.embed_dict))
 	
 	
 	async def menu_screen(self):
+		description = "🃏 Blackjack\n🎲 Chance Roll\n❌ Exit Hub"
+		if self.emoji:
+			description = description + "\n⬅️ Previous Game"
 		self.embed_dict = {
 			"title":"Game Hub",
+			"description": description,
 			"color": 0x0000ff,
-			"fields": [
-				{"name": "🃏", "value": "Blackjack", "inline": True },
-				{"name": "🎲", "value": "Chance Roll", "inline": True },
-				{"name": "❌", "value":"Exit Hub", "inline":True }
-			],
 			"author": {
-				"name": self.bot.user.display_name,
+				"name": u.discordify(self.bot.user.display_name),
 				"icon_url": str(self.bot.user.avatar_url)
 			}
 		}
 		self.update_timestamp()
-		
-		if self.emoji:
-			self.embed_dict["fields"].append({"name": "⬅️", "value":"Previous Game", "inline":True})
 		if self.msg:
-			await self.msg.edit(content=None, embed=discord.Embed.from_dict(self.embed_dict))
+			await self.msg.edit(embed=discord.Embed.from_dict(self.embed_dict))
 		else: 
 			self.msg = await self.ctx.send(embed=discord.Embed.from_dict(self.embed_dict))
 		await self.msg.clear_reactions()
@@ -333,7 +329,7 @@ class Hub:
 	async def m_game(self):
 		await self.msg.clear_reactions()
 		self.update_timestamp()
-		self.embed_dict["fields"] =  [{"name": "Loading...", "value": "Loading game..."}]
+		self.embed_dict["description"] = "Loading game..."
 		game = None
 		if self.emoji == "🃏":
 			self.embed_dict["title"] = "Games/21"
@@ -362,7 +358,7 @@ class Hub:
 				{"name": "Current Balance", "value": f"${self.cog.econ.get_balance_from_d_id(self.player.id)}", "inline": True },
 			],
 			"author": {
-				"name": self.player.display_name,
+				"name": u.discordify(self.player.display_name),
 				"icon_url": str(self.player.avatar_url)
 			},
 			"footer": {"text": "Directions: ✅: Home | ❌: Exit"}
@@ -391,7 +387,7 @@ class Hub:
 				{"name": "Error", "value": "It appears your game has errored...", "inline": True}
 			],
 			"author": {
-				"name": self.bot.user.display_name,
+				"name": u.discordify(self.bot.user.display_name),
 				"icon_url": str(self.bot.user.avatar_url)
 			},
 			"footer": {"text": "Directions: ⬅️: Home | ❌: Exit"}
@@ -490,14 +486,14 @@ class Blackjack(CardGame):
 	
 	async def game(self):
 		self.econ.set_balance_from_d_id(self.player.id, self.econ.get_balance_from_d_id(self.player.id) - self.bet)
-		l.log(f"Blackjack start: {self.player.display_name}#{self.player.discriminator} | Bet:${self.bet}", channel=l.DISCORD)
+		l.log(f"Blackjack start: {self.player.name}#{self.player.discriminator} | Bet:${self.bet}", channel=l.DISCORD)
 		self.playing = True
 		self.embed_dict = {
 			"title":"Ongoing 21 Game",
 			"type": "rich",
 			"color": 0xffdd00,
 			"author": {
-				"name": self.player.display_name,
+				"name": u.discordify(self.player.display_name),
 				"icon_url": str(self.player.avatar_url)
 			},
 			"footer": {"text": "Directions: 🔴: Stand | 🟢: Hit"}
@@ -574,7 +570,7 @@ class Blackjack(CardGame):
 				self.embed_dict["color"] = 0xffdd00
 		
 		self.cog.items.reset_boost_from_d_id(self.player.id)
-		l.log(f"Blackjack outcome: {self.player.display_name}#{self.player.discriminator}:{Blackjack.total(self.player_hand)} | Bet:${self.bet} | Multiplier:{self.multiplier}x ({self.boost}) | CPU:{Blackjack.total(self.dealer_hand)}", channel=l.DISCORD)
+		l.log(f"Blackjack outcome: {self.player.name}#{self.player.discriminator}:{Blackjack.total(self.player_hand)} | Bet:${self.bet} | Multiplier:{self.multiplier}x ({self.boost}) | CPU:{Blackjack.total(self.dealer_hand)}", channel=l.DISCORD)
 		if not self.in_hub: await self.msg.edit(embed=discord.Embed.from_dict(self.embed_dict))
 		await self.stop()
 	
