@@ -31,7 +31,7 @@ class database(Extension):
 
 		Args:
 			_id (int): User's id
-		"""		
+		"""
 		params: dict = {}
 		values_str = ""
 		

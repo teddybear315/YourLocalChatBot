@@ -19,7 +19,7 @@ from modules.utilities import ylcb_config
 __version__	= ylcb_config.data["meta"]["version"]
 build_num	= ylcb_config.data["meta"]["build_number"]
 
-bot = commands.Bot(	
+bot = commands.Bot(
 	command_prefix	= prefix,
 	case_insensitive= True,
 	description		= ylcb_config.data["bot"]["description"],
@@ -89,7 +89,7 @@ async def on_ready():
 		secrets.data["CHANGELOG_MESSAGE_ID"] = msg.id
 		## updates secrets
 		secrets.updateFile()
-	## if new build detected and not debugging 
+	## if new build detected and not debugging
 	elif build_num != secrets.data["CACHED_BUILD"] and not debugging:
 		secrets.data["CACHED_BUILD"] = build_num
 		msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
@@ -241,7 +241,7 @@ async def list(ctx):
 
 @bot.command(name="dev", hidden=True)
 @u.is_dev()
-async def dev(self, ctx, _user: discord.Member = None):
+async def dev(ctx, _user: discord.Member = None):
 	"""Add a developer to the team"""
 	if not _user:
 		await ctx.send(f"{ctx.author.mention}, please tag a user to make them a developer.")
