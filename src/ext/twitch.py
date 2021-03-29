@@ -6,19 +6,22 @@ import discord
 import modules.utilities as utils
 import requests
 from discord.ext import commands, tasks
+from modules.extension import Extension
 from modules.utilities import logger as l
 from modules.utilities import prefix, secrets
 from modules.utilities import utilities as u
 from modules.utilities import ylcb_config
 
-from ext import Extension
-from ext.database import database
-
 
 class twitch(Extension):
 	"""Twitch Integration Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
-		"""Twitch(bot)"""
+		"""
+		twitch(bot)
+
+		Args:
+			bot (`commands.Bot`): `commands.Bot` instance
+		"""
 		super().__init__(bot, "ext.twitch")
 		self.db = bot.get_cog("database").db
 		self.checker.start()
@@ -28,10 +31,16 @@ class twitch(Extension):
 		self.checker.cancel()
 	
 	
-	@commands.command(name="streamer", usage=f"{prefix}streamer <user:user> <twitch_username:str>")
+	@commands.command(name="streamer", usage=f"{prefix}streamer <user:user> <twitch_username:str>", brief="Makes user an authorized streamer and adds to live announcements")
 	@u.is_admin()
 	async def streamer(self, ctx, user: discord.Member = None, twitch_username: str = None):
-		"""Adds twitch username to a specified user in the database"""
+		"""
+		Makes user an authorized streamer and adds to live announcements
+
+		Args:
+			user (`discord.Member`, optional): User to make streamer. Defaults to `None`.
+			twitch_username (`str`, optional): User's twitch username. Defaults to `None`.
+		"""
 		if not user:
 			await ctx.send(f"{ctx.author.mention}, please tag a user to make them a streamer.")
 			return
@@ -46,12 +55,20 @@ class twitch(Extension):
 		self.db.cursor().execute("UPDATE Users SET twitch_username=? WHERE discord_id=?", (twitch_username, user.id))
 		self.db.commit()
 		await ctx.send(f"{user.mention}, {ctx.author.mention} has made you a streamer!")
+	@streamer.error
+	async def streamer_error(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			await ctx.send(f"{ctx.author.mention}, this command can only be used by admins")
 	
-	
-	@commands.command(name="raid", usage=f"{prefix}raid <twitch_channel:str>")
+	@commands.command(name="raid", usage=f"{prefix}raid <twitch_channel:str>", brief="Gives specified channel a shoutout")
 	@u.is_admin()
 	async def raid(self, ctx, twitch_channel: str = None):
-		"""Gives specified user a shoutout"""
+		"""
+		Gives specified channel a shoutout
+
+		Args:
+			twitch_channel (`str`, optional): Twitch channel to raid. Defaults to `None`.
+		"""
 		if not twitch_channel:
 			await ctx.send(f"{ctx.author.mention}, please specify a channel name.")
 			return
@@ -63,7 +80,15 @@ class twitch(Extension):
 	
 	
 	async def check(self, streamerChannel: discord.TextChannel) -> bool:
-		"""Checks if a streamer is live and if so announces it"""
+		"""
+		Checks if a streamer is live and announces it
+
+		Args:
+			streamerChannel (`discord.TextChannel`): Channel to announce in
+
+		Returns:
+			`bool`: If check succeeds
+		"""
 		for streamer in self.db.execute("SELECT * FROM Users").fetchall():
 			if not streamer[0]:
 				continue
@@ -151,6 +176,9 @@ class twitch(Extension):
 	
 	@tasks.loop(seconds=60)
 	async def checker(self):
+		"""
+		Twitch check loop
+		"""
 		l.log("Checking twitch...")
 		if await self.check(self.bot.get_channel(utils.ylcb_config.data["discord"]["announcement_channel_id"])):
 			l.log("Check Successful")
@@ -158,6 +186,9 @@ class twitch(Extension):
 	
 	@checker.before_loop
 	async def before_checker(self):
+		"""
+		Before loop stuff
+		"""
 		await self.bot.wait_until_ready()
 
 

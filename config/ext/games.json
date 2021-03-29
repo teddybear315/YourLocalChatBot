@@ -1,6 +1,4 @@
 {
-	"enabled": true,
-	"extension_type": 1,
 	"requirements": ["database", "economy", "items"],
 	"games": {
 		"blackjack": {

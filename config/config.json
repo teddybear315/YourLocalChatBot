@@ -9,10 +9,15 @@
 		300062241858912257
 	],
 	"meta": {
-		"version": "1.2.4",
+		"version": "1.2.5",
 		"build_number": 1,
 		"changelog": [
-			"Added 'discordify' function so usernames wont print with discord's markdown"
+			"Moved Extension base class to `src/modules` instead of `src/ext`",
+			"Updated help command",
+			"Added dev-only list command",
+			"Updated docstrings",
+			"Reassigned logging level values",
+			
 		]
 	},
 	"discord": {

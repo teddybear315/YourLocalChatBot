@@ -10,21 +10,33 @@ from neotermcolor import cprint
 class Config:
 	"""Config class"""
 	def __init__(self, path: str = "config.json"):
-		"""Config()"""
+		"""
+		Config(path)
+
+		Args:
+			path (`str`, optional): Path to config file. Defaults to "config.json". Prefix: "./config/"
+		"""
 		self.path = f"./config/{path}"
 		self.data: dict
 		self.updateData()
 	
 	
 	def updateFile(self):
-		"""Updates config file with current data"""
+		"""
+		Updates config file with current data
+		"""
 		with open(self.path, "w+") as f:
 			f.write(json.dumps(self.data))
 			f.close()
 	
 	
 	def updateData(self) -> dict:
-		"""Loads contents of config file into data"""
+		"""
+		Loads contents of config file into data
+
+		Returns:
+			`dict`: New data
+		"""
 		self.data = json.load(open(self.path))
 		return self.data
 
@@ -32,11 +44,11 @@ class Config:
 class Logger:
 	"""Logger class"""
 	# Logging Levels
-	CMD = 1
-	WRN = 2
-	ERR = 3
-	LOG = 4
-	FLG = 5
+	CMD = 0
+	WRN = 1
+	ERR = 2
+	LOG = 3
+	FLG = 4
 	
 	# Input Channels
 	SYSTEM	= 0
@@ -45,7 +57,14 @@ class Logger:
 	
 	@staticmethod
 	def log(msg, lvl = LOG, channel = SYSTEM):
-		"""Decent logging system"""
+		"""
+		Decent logging system
+
+		Args:
+			msg (str): Message to log
+			lvl (int, optional): Logging level. Defaults to LOG.
+			channel (int, optional): Logging channel. Defaults to SYSTEM.
+		"""
 		timestamp = str(datetime.datetime.now().isoformat(timespec="seconds")).replace("T", " ")
 		
 		prefix = "LOG"
@@ -75,12 +94,29 @@ class Utilities:
 	"""Utilities class"""
 	@staticmethod
 	def discordify(string: str) -> str:
+		"""
+		Replaces markdown indicators with normal characters
+
+		Args:
+			string (`str`): String to discordify
+
+		Returns:
+			`str`: Discordified string
+		"""
 		return string.replace("_", "\_").replace("*", "\*").replace("`", "\`").replace("~", "\~").replace(">", "\>")
 	
 	
 	@staticmethod
 	def is_admin() -> bool:
-		"""Returns if user is an admin"""
+		"""
+		Command decorator
+
+		Args:
+			ctx (`commands.Context`): Command context
+
+		Returns:
+			`bool`: If user is an administrator
+		"""
 		async def predicate(ctx):
 			return ctx.author.guild_permissions.administrator
 		return commands.check(predicate)
@@ -88,7 +124,15 @@ class Utilities:
 	
 	@staticmethod
 	def is_dev() -> bool:
-		"""Returns if user is one of my developers"""
+		"""
+		Command decorator
+
+		Args:
+			ctx (`commands.Context`): Command context
+
+		Returns:
+			`bool`: If user is a developer
+		"""
 		async def predicate(ctx):
 			return ctx.author.id in ylcb_config.data["devs"]
 		return commands.check(predicate)
@@ -96,7 +140,15 @@ class Utilities:
 	
 	@staticmethod
 	def streamer(user: discord.Member) -> bool:
-		"""Returns if a user is a streamer"""
+		"""
+		Returns if a user is a streamer
+
+		Args:
+			user (discord.Member): User to check
+
+		Returns:
+			bool: If user is a streamer
+		"""
 		for role in user.roles:
 			if role.id == ylcb_config.data["discord"]["streamer_role_id"]: return True
 		return False

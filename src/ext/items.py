@@ -2,12 +2,10 @@ import datetime
 
 import discord
 from discord.ext import commands
+from modules.extension import Extension
 from modules.utilities import logger as l
 from modules.utilities import prefix
 from modules.utilities import utilities as u
-
-from ext import Extension
-from ext.database import database
 
 
 class items(Extension):
@@ -60,16 +58,28 @@ class items(Extension):
 		return self.set_boost_from_d_id(discord_id, 0)
 	
 	
-	@commands.command(name="give_item", usage=f"{prefix}give <reciever:user> <item_id:int>")
-	async def give_item(self, ctx, reciever: discord.Member, item_id: int): 
+	@commands.command(name="give_item", usage=f"{prefix}give <reciever:user> <item_id:int>", brief="Give an item to another user")
+	async def give_item(self, ctx, reciever: discord.Member, item_id: int):
+		"""
+		Give an item to another user
+
+		Args:
+			reciever (`discord.Member`): User you want to recieve the item
+			item_id (`int`): ID of item you want to send
+		"""
 		item = self.trash_item_from_d_id(ctx.author.id, item_id)
 		self.add_item_to_inventory_from_d_id(reciever.id, item["id"])
 		await ctx.send(f"{ctx.author.mention}, you have given {item['name']} to {reciever.mention}")
 	
 	
-	@commands.command(name="view", usage=f"{prefix}view <item_id:int>")
+	@commands.command(name="view", usage=f"{prefix}view <item_id:int>", brief="Inspect an item")
 	async def view_item(self, ctx, item_id: int):
-		"""Inspect an item"""
+		"""
+		Inspect an item
+
+		Args:
+			item_id (`int`): ID of the item you want to inspect
+		"""
 		item = self.get_item_from_id(item_id)
 		embed_dict = {
 			"title": item["name"],
@@ -86,9 +96,11 @@ class items(Extension):
 		await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 	
 	
-	@commands.command(name="boosts", aliases=["boost"], usage=f"{prefix}boosts")
+	@commands.command(name="boosts", aliases=["boost"], usage=f"{prefix}boosts", brief="See your active boost")
 	async def boosts(self, ctx):
-		"""See your active boost"""
+		"""
+		See your active boost
+		"""
 		boost = self.get_boost_from_d_id(ctx.author.id)
 		if boost:
 			await ctx.send(f"{ctx.author.mention}, you currently have a {boost}x boost")
@@ -96,9 +108,14 @@ class items(Extension):
 		await ctx.send(f"{ctx.author.mention}, you currently have no active boost")
 	
 	
-	@commands.command(name="inventory", aliases=["inv"], usage=f"{prefix}inventory [user:user]")
+	@commands.command(name="inventory", aliases=["inv"], usage=f"{prefix}inventory [user:user]", brief="Open your inventory")
 	async def open_inventory(self, ctx, user: discord.Member = None):
-		"""Open your inventory"""
+		"""
+		Open your inventory
+
+		Args:
+			user (`discord.Member`, optional): If specified will open user's inventory instead of own. Defaults to `None`.
+		"""
 		if not user: user = ctx.author
 		inv = self.get_inventory_from_d_id(user.id)
 		description = ""
@@ -122,9 +139,14 @@ class items(Extension):
 		await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 	
 	
-	@commands.command(name="use", aliases=["activate"], usage=f"{prefix}use")
+	@commands.command(name="use", aliases=["activate"], usage=f"{prefix}use <item_id:int>", brief="Use an item")
 	async def use_item(self, ctx, item_id: int):
-		"""Use a booster if able to boost"""
+		"""
+		Use an item
+
+		Args:
+			item_id (`int`): Item to use
+		"""
 		boost = self.get_boost_from_d_id(ctx.author.id)
 		item = self.get_item_from_id(item_id)
 		inv = self.get_inventory_from_d_id(ctx.author.id)

@@ -8,18 +8,23 @@ from typing import Union
 import discord
 import modules.utilities as utils
 from discord.ext import commands, tasks
+from modules.extension import Extension
+from modules.utilities import debugging
 from modules.utilities import logger as l
 from modules.utilities import prefix, secrets
 from modules.utilities import utilities as u
-from modules.utilities import ylcb_config, debugging
-
-from ext import Extension
+from modules.utilities import ylcb_config
 
 
 class games(Extension):
 	"""Games Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
-		"""Games(bot)"""
+		"""
+		games(bot)
+
+		Args:
+			bot (`commands.Bot`): `commands.Bot` instance
+		"""
 		super().__init__(bot, "ext.games")
 		self.econ = bot.get_cog("economy")
 		self.items = bot.get_cog("items")
@@ -33,7 +38,7 @@ class games(Extension):
 	@tasks.loop(hours=1)
 	async def airdrop_spawner(self):
 		chance = random.randint(1,100)
-		if debugging: chance = 0
+		if debugging: return
 		if chance < 60:
 			l.log("Airdrop Spawned")
 			money = random.randint(10,1000)
@@ -99,27 +104,56 @@ class games(Extension):
 		await self.bot.wait_until_ready()
 	
 	
-	
-	@commands.command(name="hub", aliases=["games"], usage=f"{prefix}hub")
+	@commands.command(name="hub", aliases=["games"], usage=f"{prefix}hub", brief="A hub to play all your games")
 	async def hub(self, ctx):
+		"""
+		A hub to play all your games
+		"""
 		hub = Hub(self.bot, ctx)
 		await hub.start()
 		del hub
 	
 	
-	@commands.command(name="chance", usage=f"{prefix}chance <bet:float>")
-	async def chance(self, ctx, bet: float = None):
-		game = Dice(self.bot,ctx,bet)
+	@commands.command(name="chance", aliase=["roll"], usage=f"{prefix}chance <bet:float>", brief="Dice roll")
+	async def chance(self, ctx, bet: float = 0):
+		"""
+		Dice roll
+
+		Args:
+			bet (`float`, optional): How much the user is betting. Defaults to `0`.
+		"""
+		game = Dice(self.bot, ctx, bet)
 		await game.start()
 		del game
 	
-	@commands.command(name="21", aliases=["bj", "blackjack"], usage=f"{prefix}21 <bet:float> [decks:int]")
+	@commands.command(name="21", aliases=["bj", "blackjack"], usage=f"{prefix}21 <bet:float> [decks:int]", brief="Simple game of blackjack")
 	async def blackjack(self, ctx, bet: float = 0, decks: int = 4):
-		game = Blackjack(self.bot,ctx,bet,decks=decks)
+		"""
+		Simple game of blackjack
+
+		Args:
+			bet (`float`, optional): How much the user is betting. Defaults to `0`.
+			decks (`int`, optional): Amount of decks to play with. Defaults to `4`.
+		"""
+		game = Blackjack(self.bot, ctx, bet, decks)
 		await game.start()
 		del game
 	
-	async def can_user_play(self, ctx, _cfg: dict, bet: float, points: float, msg):
+	
+	async def can_user_play(self, ctx, _cfg: dict, bet: float, points: float, msg: discord.Message = None) -> bool:
+		"""
+		Checks if a user can play a game with given arguments
+
+		Args:
+			_cfg (`dict`): Game config
+			bet (`float`): How much the user is betting
+			points (`float`): Amount in user's bank
+			msg (`discord.Message`, optional): Message to edit instead of send a new one
+
+		Returns:
+			`bool`: if user can play game
+		"""
+		
 		bet = round(bet, 2)
 		if not self.config.data["enabled"] or not _cfg["enabled"]:
 			await ctx.send(f"{ctx.author.mention}, this game has been disabled by an admin.")

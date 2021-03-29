@@ -8,8 +8,7 @@ from typing import Optional
 import discord
 from discord.ext import commands
 
-## importing local modules
-import ext
+import modules.extension as ext
 from modules.utilities import Config, debugging
 from modules.utilities import logger as l
 from modules.utilities import prefix, secrets
@@ -101,7 +100,7 @@ async def on_ready():
 		## updates secrets
 		secrets.updateFile()
 	
-	##ANCHOR for every extension you want to load, load it
+	## for every extension you want to load, load it
 	for extension in ext.extensions.data["load"]:
 		l.log(f"Loading {extension}...", channel=l.DISCORD)
 		loadable = True
@@ -169,37 +168,48 @@ bot.before_invoke(before_invoke)
 
 ## basic commands
 
-@bot.command(name="version", usage=f"{prefix}version")
+
+@bot.command(name="version", usage=f"{prefix}version", brief="Tells you what version I'm running")
 async def version(ctx):
-	"""Tells you what version I'm running"""
+	"""
+	Tells you what version I'm running
+	"""
 	await ctx.send(f"I'm running version {__version__} build #{build_num}")
 
-@bot.command(name="help", usage=f"{prefix}help")
-async def help_command(ctx, command: Optional[str] = None):
-	"""This command lol"""
+
+@bot.command(name="help", usage=f"{prefix}help [command:str]", brief="This command")
+async def help_command(ctx, command: str = None):
+	"""
+	This command
+
+	Args:
+		command (`str`, optional): Command or extension name. Defaults to `None`.
+	"""
 	fields = []
 	if not command:
-		for command in bot.all_commands:
-			cmd: Command = bot.get_command(command)
-			can = not cmd.hidden
-			if can:
-				for in_fields in fields:
-					if in_fields["name"] == cmd.name: can = False
-			if can:
-				fields.append({"name": str(cmd.name), "value": str(cmd.help), "inline": True})
+		for cog in bot.cogs:
+			cog: ext.Extension = bot.get_cog(cog)
+			fields.append({"name": cog.name[4:], "value": cog.description, "inline": True})
 	else:
-		cmd = bot.get_command(command)
-		if cmd: 
-			fields.append({"name": str(cmd.name), "value": str(cmd.help), "inline": True})
+		if bot._BotBase__extensions.__contains__(f"ext.{command}"):
+			cog: commands.Cog = bot.get_cog(command)
+			for cmd in cog.get_commands():
+				cmd: commands.Command
+				if not cmd.hidden: fields.append({"name": cmd.name, "value": cmd.brief, "inline": True})
+		elif bot.get_command(command):
+			cmd = bot.get_command(command)
+			fields.append({"name": cmd.name, "value": cmd.help, "inline": True})
 			fields.append({"name": "Usage", "value": f"`{cmd.usage}`", "inline": True})
-			if cmd.aliases:
-				fields.append({"name": "Aliases", "value": ", ".join(cmd.aliases), "inline": True})
+			if cmd.aliases: fields.append({"name": "Aliases", "value": ", ".join(cmd.aliases), "inline": True})
+	
 	embed_dict = {
 		"title": "Help",
 		"description": "`<...>` is a required parameter.\n`[...]` is an optional parameter.\n`:` specifies a type",
 		"color": 0x15F3FF,
-		"fields": fields
+		"fields": fields,
+		"timestamp": datetime.datetime.now().isoformat()
 	}
+	l.log(embed_dict)
 	await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 
 
@@ -221,6 +231,12 @@ async def reload_ext_error(ctx, error):
 		await ctx.send(f"{ctx.author.mention}, this command can only be used by developers")
 	if isinstance(error, commands.ExtensionNotFound) or isinstance(error, commands.ExtensionNotLoaded):
 		await ctx.send(f"{ctx.author.mention}, this extension does not exist")
+
+
+@bot.command(name="list", hidden=True)
+@u.is_dev()
+async def list(ctx):
+	await ctx.send(", ".join(bot.cogs))
 
 
 @bot.command(name="dev", hidden=True)

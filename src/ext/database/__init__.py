@@ -1,11 +1,11 @@
-	"""This is an example of a multi-file and useful extension. database - ylcb-devs"""
+"""This is an example of a multi-file and useful extension. database - ylcb-devs"""
 import sqlite3
 from sys import argv
 
 import discord
 import modules.utilities as utils
 from discord.ext import commands
-from ext import Extension
+from modules.extension import Extension
 from modules.utilities import logger as l
 from modules.utilities import prefix
 
@@ -13,7 +13,12 @@ from modules.utilities import prefix
 class database(Extension):
 	"""Database Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
-		"""Database(bot)"""
+		"""
+		database(bot)
+
+		Args:
+			bot (`commands.Bot`): `commands.Bot` instance
+		"""
 		super().__init__(bot, "ext.database")
 		self.columns:dict = self.config.data["columns"]
 		if "--debug" not in argv: self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/main.db')
@@ -21,6 +26,12 @@ class database(Extension):
 	
 	
 	def add_new_user_from_id(self, _id):
+		"""
+		Add new user to database
+
+		Args:
+			_id (int): User's id
+		"""		
 		params: dict = {}
 		values_str = ""
 		
@@ -33,6 +44,12 @@ class database(Extension):
 		self.db.execute(f"INSERT INTO Users VALUES ({values_str})", params)
 		self.db.commit()
 	def exist_check_from_id(self, _id):
+		"""
+		Check if user exists, and if they dont add new user
+
+		Args:
+			_id (int): User to check
+		"""
 		try:
 			self.db.cursor().execute("SELECT discord_id FROM Users WHERE discord_id=:d_id", {"d_id": _id}).fetchone()
 		except:
@@ -44,9 +61,14 @@ class database(Extension):
 		self.add_new_user(user.id)
 	
 	
-	@commands.command(name="new", usage=f"{prefix}new [user:user]")
+	@commands.command(name="new", usage=f"{prefix}new [user:user]", brief="Registers you into the database")
 	async def new_member_in_db(self, ctx, user: discord.Member=None):
-		"""Registers a new member into the database"""
+		"""
+		Registers you into the database
+
+		Args:
+			user (`discord.Member`, optional): If specifies registers user instead of self. Defaults to `None`.
+		"""
 		if not user: user = ctx.author
 		if self.db.cursor().execute("SELECT * FROM Users WHERE discord_id=:d_id", {"d_id": user.id}).fetchone():
 			await ctx.send(f"{ctx.author.mention}, user already in the database")

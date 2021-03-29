@@ -5,43 +5,114 @@ from asyncio import sleep
 import discord
 import modules.utilities as utils
 from discord.ext import commands
+from modules.extension import Extension
 from modules.utilities import logger as l
 from modules.utilities import prefix
 from modules.utilities import utilities as u
 
-from ext import Extension
-
 
 class economy(Extension):
-	"""Economy Extension - ylcb-devs"""
+	"""
+	Economy Extension - ylcb-devs
+	"""
 	def __init__(self, bot: commands.Bot):
-		"""Economy(bot)"""
+		"""
+		economy(bot)
+
+		Args:
+			bot (`commands.Bot`): commands.Bot instance
+		"""
 		super().__init__(bot, "ext.economy")
 		self.db = bot.get_cog("database").db
 	
 	
 	def get_balance_from_d_id(self, discord_id: int)										-> float:
-		"""Returns the given user's balance"""
+		"""
+		Returns a user's balance
+
+		Args:
+			discord_id (int): User's id
+
+		Returns:
+			float: Balance
+		"""
 		return self.db.execute("SELECT balance FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
 	def set_balance_from_d_id(self, discord_id: int, bal: int)								-> float:
-		"""Returns and sets a given users balance to bal"""
+		"""
+		Set a user's balance
+
+		Args:
+			discord_id (int): User's id
+			bal (int): New balance value
+
+		Returns:
+			float: Balance
+		"""
 		self.db.cursor().execute("UPDATE Users SET balance=? WHERE discord_id=?", (round(bal,2), discord_id))
 		self.db.commit()
 		return round(bal, 2)
-	def can_pay_amount(self, sender_id: int, amount: int)									-> bool	:
-		"""Returns if balance can be paid"""
-		snd_bal = self.get_balance_from_d_id(sender_id)
+	def can_pay_amount(self, discord_id: int, amount: int)									-> bool :
+		"""
+		Returns if a user can pay amount
+
+		Args:
+			discord_id (int): User's id
+			amount (int): Amount to pay
+
+		Returns:
+			bool: If user can pay amount
+		"""
+		snd_bal = self.get_balance_from_d_id(discord_id)
 		return snd_bal > amount
-	def get_transaction_history_from_id(self, discord_id: int)								-> list	:
+	def get_transaction_history_from_id(self, discord_id: int)								-> list :
+		"""
+		Return a user's transaction history
+
+		Args:
+			discord_id (int): User's id
+
+		Returns:
+			list: Transaction History
+		"""
 		th = self.db.execute("SELECT transaction_history FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
 		return json.loads(th.replace("\'","\""))
-	def set_transaction_history_from_id(self, discord_id: int, value: list) 				-> list	:
+	def set_transaction_history_from_id(self, discord_id: int, value: list) 				-> list :
+		"""
+		Set a user's transaction history
+
+		Args:
+			discord_id (int): User's id
+			value (list): New transaction history
+
+		Returns:
+			list: value
+		"""
 		self.db.cursor().execute("UPDATE Users SET transaction_history=? WHERE discord_id=?", (str(value), discord_id))
 		self.db.commit()
 		return value
-	def clear_transaction_history_from_id(self, discord_id: int)							-> dict	:
+	def clear_transaction_history_from_id(self, discord_id: int)							-> dict :
+		"""
+		Clear a user's transaction history
+
+		Args:
+			discord_id (int): User's id
+
+		Returns:
+			dict: Empty array
+		"""
 		return self.set_transaction_history_from_id(discord_id, [])
-	def push_transaction_history_from_id(self, discord_id: int, place: str, amount: float)	-> dict	:
+	def push_transaction_history_from_id(self, discord_id: int, place: str, amount: float)	-> dict :
+		"""
+		Push an entry to a user's transaction history
+
+		Args:
+			discord_id (int): User's id
+			place (str): Place money was spent
+			amount (float): Amount of money spent
+
+		Returns:
+			dict: New transaction history value
+		"""
 		thCur: list = self.get_transaction_history_from_id(discord_id)
 		if len(thCur) >= 3:
 			for x in range(len(thCur) - 2):
@@ -50,9 +121,14 @@ class economy(Extension):
 		self.set_transaction_history_from_id(discord_id, thCur)
 		return thCur
 	
-	@commands.command(name="balance", aliases=["bal"], usage=f"{prefix}balance [user:user]")
-	async def balance(self,ctx, user: discord.Member = None):
-		"""Returns your or another users balance"""
+	@commands.command(name="balance", aliases=["bal"], usage=f"{prefix}balance [user:user]", brief="Returns you or another user's balance")
+	async def balance(self, ctx, user: discord.Member = None):
+		"""
+		Returns you or another user's balance
+
+		Args:
+			user (`discord.Member`, optional): User to get balance for. Defaults to `None`.
+		"""
 		if not user: user = ctx.author
 		points = self.get_balance_from_d_id(user.id)
 		th: list = self.get_transaction_history_from_id(user.id)
@@ -81,8 +157,11 @@ class economy(Extension):
 		await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 	
 	
-	@commands.command(name="leaderboard", aliases=["lb"], usage=f"{prefix}leaderboard")
-	async def leaderboard(self, ctx): 
+	@commands.command(name="leaderboard", aliases=["lb"], usage=f"{prefix}leaderboard", brief="Show server leaderboard")
+	async def leaderboard(self, ctx):
+		"""
+		Show server leaderboard
+		"""
 		lb: list = self.db.execute("SELECT * FROM Users ORDER BY balance DESC").fetchmany(5)
 		
 		lb_total: int = 0
@@ -105,9 +184,16 @@ class economy(Extension):
 		await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 	
 	
-	@commands.command(name="pay", usage=f"{prefix}pay <receiver:user> [amount:float=50] [message:str]")
-	async def pay(self,ctx, reciever: discord.Member, amount: float = 50, *, message: str = None):
-		"""Pay another user"""
+	@commands.command(name="pay", usage=f"{prefix}pay <receiver:user> [amount:float=50] [message:str]", brief="Pay another user")
+	async def pay(self, ctx, reciever: discord.Member, amount: float = 50, *, message: str = None):
+		"""
+		Pay another user
+
+		Args:
+			reciever (`discord.Member`): Person to pay money to
+			amount (`float`, optional): Amount to pay. Defaults to `50`.
+			message (`str`, optional): Message to user. Defaults to `None`.
+		"""
 		if reciever == ctx.author:
 			await ctx.send(f"{ctx.author.mention}, you cannot send money to yourself")
 			return
@@ -177,9 +263,16 @@ class economy(Extension):
 			await ctx.send(f"{ctx.author.mention}, you only have ${self.get_balance_from_d_id(ctx.author.id)}")
 	
 	
-	@commands.command(name="request", aliases=["req"], usage=f"{prefix}request <sender:user> [amount:float=50] [message:str]")
-	async def request(self,ctx,sender: discord.Member, amount: float = 50, *, message: str = None):
-		"""Request money from another user"""
+	@commands.command(name="request", aliases=["req"], usage=f"{prefix}request <sender:user> [amount:float=50] [message:str]", brief="Request money from another user")
+	async def request(self, ctx, sender: discord.Member, amount: float = 50, *, message: str = None):
+		"""
+		Request money from another user
+
+		Args:
+			sender (`discord.Member`): User you want money from
+			amount (`float`, optional): Amount to request. Defaults to `50`.
+			message (`str`, optional): Message to user. Defaults to `None`.
+		"""
 		if sender == ctx.author:
 			await ctx.send(f"{ctx.author.mention}, you cannot request money from yourself")
 			return
@@ -231,8 +324,11 @@ class economy(Extension):
 			await ctx.send(f"{ctx.author.mention}, that user has insufficient funds!")
 	
 	
-	@commands.command(name="go_broke", aliases=["0"], usage=f"{prefix}go_broke")
+	@commands.command(name="go_broke", aliases=["0"], usage=f"{prefix}go_broke", brief="Go broke")
 	async def go_broke(self, ctx):
+		"""
+		Go broke
+		"""
 		try:
 			self.set_balance_from_d_id(ctx.author.id, 0)
 			self.clear_transaction_history_from_id(ctx.author.id)
@@ -286,6 +382,9 @@ class economy(Extension):
 	async def sub_balance_error(self, ctx, error):
 		if isinstance(error, commands.CheckFailure):
 			await ctx.send(f"{ctx.author.mention}, this command can only be used by admins")
+	
+	
+
 
 def setup(bot):
 	bot.add_cog(economy(bot))
