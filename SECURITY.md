@@ -6,7 +6,7 @@ Any major security flaws will be fixed once they have been noticed and a proper 
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
+| 1.2.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
