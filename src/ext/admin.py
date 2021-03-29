@@ -19,7 +19,7 @@ class admin(Extension):
 		Args:
 			bot (`commands.Bot`): `commands.Bot` Instance
 		"""
-		super().__init__(bot, "ext.admin")
+		super().__init__(bot, "admin")
 		self.discord_time_format = "%Y-%m-%d %H:%M:%S.%f"
 	
 	

@@ -22,7 +22,7 @@ class twitch(Extension):
 		Args:
 			bot (`commands.Bot`): `commands.Bot` instance
 		"""
-		super().__init__(bot, "ext.twitch")
+		super().__init__(bot, "twitch")
 		self.db = bot.get_cog("database").db
 		self.checker.start()
 	

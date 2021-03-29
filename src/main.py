@@ -27,6 +27,7 @@ bot = commands.Bot(
 	activity		= discord.Activity(type=discord.ActivityType.watching, name="some peoples streams.")
 )
 
+extensions = Config("./config/extensions.json")
 
 l.log("Removing help command...", channel=l.DISCORD)
 bot.remove_command("help")
@@ -101,17 +102,17 @@ async def on_ready():
 		secrets.updateFile()
 	
 	## for every extension you want to load, load it
-	for extension in ext.extensions.data["load"]:
+	for extension in extensions.data["load"]:
 		l.log(f"Loading {extension}...", channel=l.DISCORD)
 		loadable = True
 		try: ## Try catch allows you to skip setting up a requirements value if no requirement is needed
-			for requirement in Config(f"ext/{extension}.json").data["requirements"]:
+			for requirement in Config(f"./src/ext/config/{extension}.json").data["requirements"]:
 				if not bot._BotBase__extensions.__contains__(f"ext.{requirement}") and requirement != "":
 					try: bot.load_extension(f"ext.{requirement}")
-					except Exception as e: 
+					except Exception as e:
 						l.log(f"\tCould not load requirement {requirement}", l.ERR, l.DISCORD)
 						l.log(f"\t{e}",l.ERR,l.DISCORD)
-						bot.remove_cog(f"ext.{extension}")
+						bot.remove_cog(extension)
 						loadable = False
 					else: l.log(f"\tLoaded requirement {requirement}", channel=l.DISCORD)
 				else: l.log(f"\tRequirement {requirement} met", channel=l.DISCORD)
@@ -189,7 +190,7 @@ async def help_command(ctx, command: str = None):
 	if not command:
 		for cog in bot.cogs:
 			cog: ext.Extension = bot.get_cog(cog)
-			fields.append({"name": cog.name[4:], "value": cog.description, "inline": True})
+			fields.append({"name": cog.name, "value": cog.description, "inline": True})
 	else:
 		if bot._BotBase__extensions.__contains__(f"ext.{command}"):
 			cog: commands.Cog = bot.get_cog(command)

@@ -12,7 +12,7 @@ class items(Extension):
 	"""Items Extension - ylcb-devs"""
 	def __init__(self, bot: commands.Bot):
 		"""items(bot)"""
-		super().__init__(bot, "ext.items")
+		super().__init__(bot, "items")
 		self.db: database = bot.get_cog("database").db
 	
 	

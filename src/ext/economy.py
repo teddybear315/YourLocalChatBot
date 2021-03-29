@@ -22,7 +22,7 @@ class economy(Extension):
 		Args:
 			bot (`commands.Bot`): commands.Bot instance
 		"""
-		super().__init__(bot, "ext.economy")
+		super().__init__(bot, "economy")
 		self.db = bot.get_cog("database").db
 	
 	

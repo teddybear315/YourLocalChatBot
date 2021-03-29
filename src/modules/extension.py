@@ -4,8 +4,6 @@ from discord.ext import commands
 
 from .utilities import Config
 
-extensions = Config("extensions.json")
-
 
 class Extension(commands.Cog):
 	def __init__(self, bot: commands.Bot, name: str):
@@ -16,6 +14,6 @@ class Extension(commands.Cog):
 			bot (`commands.Bot`): commands.Bot instance
 			name (`str`): Name of extension
 		"""
-		self.config = Config(f"{name.replace('.', '/')}.json")
+		self.config = Config(f"./src/ext/config/{name}.json")
 		self.name = name
 		self.bot = bot

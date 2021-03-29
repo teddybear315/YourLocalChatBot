@@ -9,14 +9,10 @@
 		300062241858912257
 	],
 	"meta": {
-		"version": "1.2.5",
+		"version": "1.2.6",
 		"build_number": 1,
 		"changelog": [
-			"Moved Extension base class to `src/modules` instead of `src/ext`",
-			"Updated help command",
-			"Added dev-only list command",
-			"Updated docstrings",
-			"Reassigned logging level values"
+			"Extensions are now completely seperate from the main bot"
 		]
 	},
 	"discord": {

@@ -19,7 +19,7 @@ class database(Extension):
 		Args:
 			bot (`commands.Bot`): `commands.Bot` instance
 		"""
-		super().__init__(bot, "ext.database")
+		super().__init__(bot, "database")
 		self.columns:dict = self.config.data["columns"]
 		if "--debug" not in argv: self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/main.db')
 		else: self.db: sqlite3.Connection	= sqlite3.connect('./src/ext/database/testing.db')

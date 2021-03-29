@@ -9,14 +9,14 @@ from neotermcolor import cprint
 
 class Config:
 	"""Config class"""
-	def __init__(self, path: str = "config.json"):
+	def __init__(self, path: str = "./config/config.json"):
 		"""
 		Config(path)
 
 		Args:
 			path (`str`, optional): Path to config file. Defaults to "config.json". Prefix: "./config/"
 		"""
-		self.path = f"./config/{path}"
+		self.path = path
 		self.data: dict
 		self.updateData()
 	
@@ -154,8 +154,8 @@ class Utilities:
 		return False
 
 
-ylcb_config = Config("config.json")
-secrets = Config("secrets.json")
+ylcb_config = Config("./config/config.json")
+secrets = Config("./config/secrets.json")
 utilities = Utilities()
 logger = Logger()
 

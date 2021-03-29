@@ -25,7 +25,7 @@ class games(Extension):
 		Args:
 			bot (`commands.Bot`): `commands.Bot` instance
 		"""
-		super().__init__(bot, "ext.games")
+		super().__init__(bot, "games")
 		self.econ = bot.get_cog("economy")
 		self.items = bot.get_cog("items")
 		self.airdrop_spawner.start()
