@@ -16,8 +16,7 @@
 			"Updated help command",
 			"Added dev-only list command",
 			"Updated docstrings",
-			"Reassigned logging level values",
-			
+			"Reassigned logging level values"
 		]
 	},
 	"discord": {
