@@ -3,3 +3,4 @@ secrets.json
 logs/
 __pycache__/
 .vscode/
+ext/
