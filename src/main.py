@@ -202,7 +202,6 @@ async def help_command(ctx, command: str = None):
 			fields.append({"name": cmd.name, "value": cmd.help, "inline": True})
 			fields.append({"name": "Usage", "value": f"`{cmd.usage}`", "inline": True})
 			if cmd.aliases: fields.append({"name": "Aliases", "value": ", ".join(cmd.aliases), "inline": True})
-	
 	embed_dict = {
 		"title": "Help",
 		"description": "`<...>` is a required parameter.\n`[...]` is an optional parameter.\n`:` specifies a type",
@@ -210,7 +209,6 @@ async def help_command(ctx, command: str = None):
 		"fields": fields,
 		"timestamp": datetime.datetime.now().isoformat()
 	}
-	l.log(embed_dict)
 	await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 
 

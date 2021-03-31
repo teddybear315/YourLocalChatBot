@@ -23,7 +23,7 @@ class economy(Extension):
 			bot (`commands.Bot`): commands.Bot instance
 		"""
 		super().__init__(bot, "economy")
-		self.db = bot.get_cog("database").db
+		self.db = bot.get_cog("database")
 	
 	
 	def get_balance_from_d_id(self, discord_id: int)										-> float:
@@ -36,7 +36,7 @@ class economy(Extension):
 		Returns:
 			float: Balance
 		"""
-		return self.db.execute("SELECT balance FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
+		return self.db.cursor.execute("SELECT balance FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
 	def set_balance_from_d_id(self, discord_id: int, bal: int)								-> float:
 		"""
 		Set a user's balance
@@ -48,8 +48,8 @@ class economy(Extension):
 		Returns:
 			float: Balance
 		"""
-		self.db.cursor().execute("UPDATE Users SET balance=? WHERE discord_id=?", (round(bal,2), discord_id))
-		self.db.commit()
+		self.db.cursor.execute("UPDATE Users SET balance=? WHERE discord_id=?", (round(bal,2), discord_id))
+		self.db.db.commit()
 		return round(bal, 2)
 	def can_pay_amount(self, discord_id: int, amount: int)									-> bool :
 		"""
@@ -74,7 +74,7 @@ class economy(Extension):
 		Returns:
 			list: Transaction History
 		"""
-		th = self.db.execute("SELECT transaction_history FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
+		th = self.db.cursor.execute("SELECT transaction_history FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
 		return json.loads(th.replace("\'","\""))
 	def set_transaction_history_from_id(self, discord_id: int, value: list) 				-> list :
 		"""
@@ -87,8 +87,8 @@ class economy(Extension):
 		Returns:
 			list: value
 		"""
-		self.db.cursor().execute("UPDATE Users SET transaction_history=? WHERE discord_id=?", (str(value), discord_id))
-		self.db.commit()
+		self.db.cursor.execute("UPDATE Users SET transaction_history=? WHERE discord_id=?", (str(value), discord_id))
+		self.db.db.commit()
 		return value
 	def clear_transaction_history_from_id(self, discord_id: int)							-> dict :
 		"""
@@ -162,7 +162,7 @@ class economy(Extension):
 		"""
 		Show server leaderboard
 		"""
-		lb: list = self.db.execute("SELECT * FROM Users ORDER BY balance DESC").fetchmany(5)
+		lb: list = self.db.cursor.execute("SELECT * FROM Users ORDER BY balance DESC").fetchmany(5)
 		
 		lb_total: int = 0
 		fields: list = []

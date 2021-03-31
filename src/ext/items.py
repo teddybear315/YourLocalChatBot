@@ -13,7 +13,7 @@ class items(Extension):
 	def __init__(self, bot: commands.Bot):
 		"""items(bot)"""
 		super().__init__(bot, "items")
-		self.db: database = bot.get_cog("database").db
+		self.db: database = bot.get_cog("database")
 	
 	
 	def get_item_from_id				(self, item_id: int)						-> dict	:
@@ -21,13 +21,13 @@ class items(Extension):
 		return self.config.data["items"][item_id]
 	def get_inventory_from_d_id			(self, discord_id: int)						-> list	:
 		"""Returns given user's inventory"""
-		inv = self.db.execute("SELECT inventory FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
+		inv = self.db.cursor.execute("SELECT inventory FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0]
 		if inv: return [int(x) for x in inv.split(",")]
 		return []
 	def set_inventory_from_d_id			(self, discord_id: int, inventory: list)	-> list	:
 		"""Returns and sets the given user's inventory value to inventory"""
-		self.db.cursor().execute("UPDATE Users SET inventory=? WHERE discord_id=?", (",".join([str(_item) for _item in inventory]), discord_id))
-		self.db.commit()
+		self.db.cursor.execute("UPDATE Users SET inventory=? WHERE discord_id=?", (",".join([str(_item) for _item in inventory]), discord_id))
+		self.db.db.commit()
 		return inventory
 	def add_item_to_inventory_from_d_id	(self, discord_id: int, item_id: int)		-> dict	:
 		"""Returns and adds an item to the given user's inventory"""
@@ -47,11 +47,11 @@ class items(Extension):
 		return self.get_item_from_id(item_id)
 	def get_boost_from_d_id				(self, discord_id: int)						-> float:
 		"""Returns given user's current boost value"""
-		return float(self.db.execute("SELECT boost FROM Users WHERE discord_id=?", (discord_id,)).fetchone()[0])
+		return float(self.db.cursor.execute("SELECT boost FROM Users WHERE discord_id=?", discord_id).fetchone()[0])
 	def set_boost_from_d_id				(self, discord_id: int, boost_value: int)	-> int	:
 		"""Returns and sets given users boost value to boost_value"""
-		self.db.cursor().execute("UPDATE Users SET boost=? WHERE discord_id=?", (boost_value, discord_id))
-		self.db.commit()
+		self.db.cursor.execute("UPDATE Users SET boost=? WHERE discord_id=?", (boost_value, discord_id))
+		self.db.db.commit()
 		return boost_value
 	def reset_boost_from_d_id			(self, discord_id: int)						-> int	:
 		"""Returns and sets user's boost value to 0"""

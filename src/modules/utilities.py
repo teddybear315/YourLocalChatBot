@@ -117,7 +117,7 @@ class Utilities:
 		Returns:
 			`bool`: If user is an administrator
 		"""
-		async def predicate(ctx):
+		async def predicate(ctx: commands.Context):
 			return ctx.author.guild_permissions.administrator
 		return commands.check(predicate)
 	

@@ -10,7 +10,7 @@
 	],
 	"meta": {
 		"version": "1.2.6",
-		"build_number": 1,
+		"build_number": 2,
 		"changelog": [
 			"Extensions are now completely seperate from the main bot"
 		]
@@ -23,6 +23,7 @@
 		"announcement_channel_id": 825099615589105664,
 		"event_channel_id": 805535613867786261,
 		"member_role_id": 802752009862250506,
-		"streamer_role_id": 802750798025981982
+		"streamer_role_id": 802750798025981982,
+		"admin_role_id": 732033568791855104
 	}
 }
