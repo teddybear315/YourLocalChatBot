@@ -1,6 +1,6 @@
 # YourLocalChatBot
 ---
-Your local chatbot is an easy to use, modifiable, and beginner friendly Chat Bot. YLCB is developed by [Granny](https://twitch.tv/depressionscr) and [\_Potato\_](https://twitch.tv/8potatochip8).
+Your local chatbot is an easy to use, modifiable, and beginner friendly Chat Bot. YLCB is developed by [Teddy](https://twitch.tv/depressionscr).
 
 ---
 ### Why should I use YLCB?
