@@ -60,14 +60,14 @@ class Bot(commands.Cog):
 			secrets.data["CACHED_VERSION"] = self.version
 			secrets.data["CACHED_BUILD"] = self.build_num
 			## send new message and update stored message id
-			msg = await changelogChannel.send(embed=embed)
+			msg = await self.changelogChannel.send(embed=embed)
 			secrets.data["CHANGELOG_MESSAGE_ID"] = msg.id
 			## updates secrets
 			secrets.updateFile()
 		## if new build detected and not debugging
 		elif self.build_num != secrets.data["CACHED_BUILD"] and not debugging:
 			secrets.data["CACHED_BUILD"] = self.build_num
-			msg = await changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
+			msg = await self.changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 			if msg.author != self.bot.user:
 				l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN, l.DISCORD)
 			else:
