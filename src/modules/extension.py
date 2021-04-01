@@ -11,7 +11,7 @@ class Extension(commands.Cog):
 		Extension(bot, name)
 
 		Args:
-			bot (`commands.Bot`): commands.Bot instance
+			bot (`commands.Bot`): `commands.Bot` instance
 			name (`str`): Name of extension
 		"""
 		self.config = Config(f"./src/ext/config/{name}.json")

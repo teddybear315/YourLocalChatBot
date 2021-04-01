@@ -1,10 +1,12 @@
-import datetime
 import json
+from datetime import datetime
 from sys import argv
 
 import discord
 from discord.ext import commands
 from neotermcolor import cprint
+
+debugging = ("--debug" in argv)
 
 
 class Config:
@@ -14,7 +16,7 @@ class Config:
 		Config(path)
 
 		Args:
-			path (`str`, optional): Path to config file. Defaults to "config.json". Prefix: "./config/"
+			path (`str`, optional): Path to config file. Defaults to `"config.json"`. Prefix: `"./config/"`
 		"""
 		self.path = path
 		self.data: dict
@@ -55,8 +57,30 @@ class Logger:
 	DISCORD	= 1
 	TWITCH	= 2
 	
-	@staticmethod
-	def log(msg, lvl = LOG, channel = SYSTEM):
+	FILE = 0
+	CONSOLE = 1
+	BOTH = 2
+	
+	
+	def __init__(self):
+		self.config = ylcb_config.data["logging"]
+		self.path = self.config["path"]+datetime.now().strftime(self.config["format"])+self.config["type"]
+		if debugging:
+			self.path = self.config["path"]+ "DEBUG " +datetime.now().strftime(self.config["format"])+self.config["type"]
+	
+	
+	def write(self, string: str = "\n"):
+		"""
+		Appends line to log file
+
+		Args:
+			string (str, optional): String to append to file. Defaults to "\n".
+		"""
+		with open(self.path, "a+") as file:
+			file.write(string)
+	
+	
+	def log(self, msg, lvl = LOG, channel = SYSTEM, destination = BOTH):
 		"""
 		Decent logging system
 
@@ -65,33 +89,36 @@ class Logger:
 			lvl (int, optional): Logging level. Defaults to LOG.
 			channel (int, optional): Logging channel. Defaults to SYSTEM.
 		"""
-		timestamp = str(datetime.datetime.now().isoformat(timespec="seconds")).replace("T", " ")
+		timestamp = str(datetime.now().isoformat(timespec="seconds")).replace("T", " ")
 		
 		prefix = "LOG"
 		color = "white"
 		
 		if type(msg) is commands.Context:
-			lvl = Logger.CMD
+			lvl = self.CMD
 			msg = f"{msg.command.name} command ran by {msg.author.display_name}#{msg.author.discriminator}"
 		
-		if lvl == Logger.WRN:
+		if lvl == self.WRN:
 			prefix = "WRN"
 			color = "yellow"
-		elif lvl == Logger.ERR:
+		elif lvl == self.ERR:
 			prefix = "ERR"
 			color = "red"
-		elif lvl == Logger.CMD:
+		elif lvl == self.CMD:
 			prefix = "CMD"
 			color = "green"
-		elif lvl == Logger.FLG:
+		elif lvl == self.FLG:
 			prefix = "FLG"
 			color = "magenta"
 		
 		cprint(f"[{channel}][{prefix}] {timestamp}: {msg}", color=color)
+		self.write(f"[{channel}][{prefix}] {timestamp}: {msg}\n")
 
 
 class Utilities:
 	"""Utilities class"""
+	
+	
 	@staticmethod
 	def discordify(string: str) -> str:
 		"""
@@ -159,7 +186,6 @@ secrets = Config("./config/secrets.json")
 utilities = Utilities()
 logger = Logger()
 
-debugging = ("--debug" in argv)
 if debugging:
 	prefix = ylcb_config.data["bot"]["dev_prefix"]
 else:
