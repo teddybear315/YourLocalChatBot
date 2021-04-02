@@ -9,14 +9,11 @@
 		300062241858912257
 	],
 	"meta": {
-		"version": "1.3.0",
+		"version": "1.3.1",
 		"build_number": 1,
 		"changelog": [
-			"Logging system updated and now configurable",
-			"Base bot functions now a cog",
-			"\t- This allows for reloading of base commands or listeners",
-			"\t- This excludes the reload extension",
-			"`config/extensions.json` moved into `config/config.json`"
+			"Fixed error relating to the changelog",
+			"Changelogs now change to include minor updates and new builds"
 		]
 	},
 	"discord": {

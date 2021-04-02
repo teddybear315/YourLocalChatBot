@@ -3,8 +3,7 @@ import datetime
 import discord
 from discord.ext import commands
 
-import modules.extension as ext
-
+from .extension import Extension
 from .utilities import Config, debugging
 from .utilities import logger as l
 from .utilities import prefix, secrets
@@ -21,10 +20,9 @@ class Bot(commands.Cog):
 		Args:
 			bot (`commands.Bot`): commands.Bot instance
 		"""
-		self.bot = bot
-		self.version = ylcb_config.data["meta"]["version"]
-		self.build_num = ylcb_config.data["meta"]["build_number"]
-		self.bot.before_invoke(self.before_invoke)
+		self.bot: commands.Bot = bot
+		self.version: str = ylcb_config.data["meta"]["version"]
+		self.build_num: int = ylcb_config.data["meta"]["build_number"]
 		self.bot.remove_command("help")
 	
 	
@@ -47,30 +45,39 @@ class Bot(commands.Cog):
 		self.suggestionChannel		= self.bot.get_channel(ylcb_config.data["discord"]["suggestion_channel_id"])
 		self.announcementChannel	= self.bot.get_channel(ylcb_config.data["discord"]["announcement_channel_id"])
 		
-		## changelog message update
-		nt = "\n\t- "
-		embed = discord.Embed(title=f"Local Chat Bot v{self.version}", color=0xff6000)
-		embed.set_author(name=f"Your Local Chat Bot", icon_url=self.bot.user.avatar_url)
-		embed.add_field(name="Changelog", value=f"\t- {nt.join(ylcb_config.data['meta']['changelog'])}")
-		embed.set_footer(text=f"Build #{self.build_num}")
-		del nt
 		
-		## if update detected and not debugging
-		if self.version != secrets.data["CACHED_VERSION"] and not debugging:
+		# split version and cahced_version into array of [api, major, minor]
+		version_parts = self.version.split(".")
+		cached_version_parts = secrets.data["CACHED_VERSION"].split(".")
+		# if major/api update detected and not debugging
+		if (version_parts[0] != cached_version_parts[0] or version_parts[1] != cached_version_parts[1]):# and not debugging:
+			#update cached version and build number
 			secrets.data["CACHED_VERSION"] = self.version
 			secrets.data["CACHED_BUILD"] = self.build_num
+			
 			## send new message and update stored message id
+			nt = "\n\t- "
+			embed = discord.Embed(title=f"Local Chat Bot v{version_parts[0]}.{version_parts[1]}.x", color=0xff6000)
+			embed.set_author(name=f"Your Local Chat Bot", icon_url=self.bot.user.avatar_url)
+			embed.add_field(name=f"v{self.version}b{self.build_num} Changelog", value=f"\t- {nt.join(ylcb_config.data['meta']['changelog'])}", inline=False)
+			
 			msg = await self.changelogChannel.send(embed=embed)
 			secrets.data["CHANGELOG_MESSAGE_ID"] = msg.id
 			## updates secrets
 			secrets.updateFile()
-		## if new build detected and not debugging
-		elif self.build_num != secrets.data["CACHED_BUILD"] and not debugging:
+		
+		# if minor/build update detected and not debugging
+		elif (version_parts[2] == cached_version_parts[2] or self.build_num == secrets.data["CACHED_BUILD"]):# and not debugging:
+			#update cached version and build number
 			secrets.data["CACHED_BUILD"] = self.build_num
+			secrets.data["CACHED_VERSION"] = self.version
 			msg = await self.changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 			if msg.author != self.bot.user:
 				l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN, l.DISCORD)
 			else:
+				nt = "\n\t- "
+				embed = msg.embeds[0]
+				embed.add_field(name=f"v{self.version}b{self.build_num} Changelog", value=f"\t- {nt.join(ylcb_config.data['meta']['changelog'])}", inline=False)
 				await msg.edit(embed=embed)
 			## updates secrets
 			secrets.updateFile()
@@ -110,10 +117,11 @@ class Bot(commands.Cog):
 	
 	@commands.Cog.listener()
 	async def on_message(self, message: discord.Message):
+		await self.bot.wait_until_ready()
 		if message.channel == self.suggestionChannel:
 			embed_dict = {
 				"title": "Feature Request",
-				"timestamp": datetime.datetime.now().isoformat(),
+				"timestamp": datetime.now().isoformat(),
 				"type": "rich",
 				"color": 0x8000ff,
 				"author": {
@@ -135,6 +143,7 @@ class Bot(commands.Cog):
 				else: l.log(f"Developer with ID {dev} does not exist!", l.ERR, l.DISCORD)
 	
 	
+	@commands.before_invoke
 	async def before_invoke(self, ctx):
 		l.log(ctx, channel=l.DISCORD)
 	
@@ -143,11 +152,11 @@ class Bot(commands.Cog):
 	
 	
 	@commands.command(name="version", usage=f"{prefix}version", brief="Tells you what version I'm running")
-	async def version(self, ctx):
+	async def version_command(self, ctx):
 		"""
 		Tells you what version I'm running
 		"""
-		await ctx.send(f"I'm running version {self.version} build #{self.build_num}")
+		await ctx.send(f"I'm running version {self.version}b{self.build_num}")
 	
 	
 	@commands.command(name="help", usage=f"{prefix}help [command:str]", brief="This command")
@@ -164,7 +173,7 @@ class Bot(commands.Cog):
 		if not command:
 			for i,cog in enumerate(self.bot.cogs):
 				if not i: continue
-				cog: ext.Extension = self.bot.get_cog(cog)
+				cog: Extension = self.bot.get_cog(cog)
 				fields.append({"name": cog.name, "value": cog.description, "inline": True})
 		else:
 			if self.bot.extensions.extensions.__contains__(f"ext.{command}"):
@@ -182,7 +191,7 @@ class Bot(commands.Cog):
 			"description": "`<...>` is a required parameter.\n`[...]` is an optional parameter.\n`:` specifies a type",
 			"color": 0x15F3FF,
 			"fields": fields,
-			"timestamp": datetime.datetime.now().isoformat()
+			"timestamp": datetime.now().isoformat()
 		}
 		await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 	
