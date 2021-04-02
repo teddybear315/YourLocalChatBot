@@ -38,4 +38,4 @@ So for example `v1.2.3b4`
 
 - Uses api and dependency verions that are compatible with `v1.x`
 - Extensions may not be compatible with any version that isnt `v1.2.x`
-- `minor` and `patch` mainly just show how much code i've written since the last `major` update
+- `minor` and `patch` mainly just show how much code I've written since the last `major` update
