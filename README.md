@@ -13,4 +13,4 @@ It is an easy way to load, reload, and unload files from use with the Discord AP
 We don't store personal data on our databases, only information you give us or information used internally within the bot itself (ex: your point balance or discord id)
 
 ### This is it?
-No! We host and maintain all our plugins you can find them [here](https://github.com/teddybear315/YLCB_Extensions)
+No! We host and maintain all our plugins you can find them [here](https://github.com/teddybear315/YLCB-Extensions)
