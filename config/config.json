@@ -10,10 +10,10 @@
 	],
 	"meta": {
 		"version": "1.3.1",
-		"build_number": 1,
+		"build_number": 2,
 		"changelog": [
-			"Fixed error relating to the changelog",
-			"Changelogs now change to include minor updates and new builds"
+			"Re-added debugging mode checks for update detection",
+			"\t- Removed because I had to use the function while debugging"
 		]
 	},
 	"discord": {
