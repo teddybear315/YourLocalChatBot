@@ -7,7 +7,7 @@ ib == 0.8.0
 irclogparser == 1.0.6
 isocon == 0.3.3
 isonclust == 0.0.6
-isoncorrect == 0.0.7
+isoncorrect == 0.0.8
 kodai-modules == 0.1.0
 lockdoor == 2.2.4
 modules-for-mozia == 1.1.0
