@@ -29,6 +29,14 @@ bot = commands.Bot(
 bot.load_extension("modules.bot")
 
 
+async def on_command_error(ctx, error):
+	l.log(str(error), l.ERR, l.DISCORD)
+	embed = discord.Embed(title="Error!", color=0xff0000, description=f"There was an error proccessing your command!\nReason: {str(error)}")
+	embed.timestamp(datetime.datetime)
+	await ctx.send(embed=embed)
+	return super().cog_command_error(ctx, error)
+
+
 @bot.command(name="reload", hidden=True)
 @u.is_dev()
 async def reload_ext(ctx, ext: str):

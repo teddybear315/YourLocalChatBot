@@ -96,7 +96,7 @@ class Logger:
 		
 		if type(msg) is commands.Context:
 			lvl = self.CMD
-			msg = f"{msg.command.name} command ran by {msg.author.display_name}#{msg.author.discriminator}"
+			msg = f"{msg.command.name} command ran by {str(msg.author)}"
 		
 		if lvl == self.WRN:
 			prefix = "WRN"

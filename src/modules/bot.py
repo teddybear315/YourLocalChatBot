@@ -112,7 +112,7 @@ class Bot(commands.Cog):
 	
 	@commands.Cog.listener()
 	async def on_member_remove(self, user: discord.Member):
-		await self.welcomeChannel.send(f"We will miss you, {u.discordify(user.display_name)}")
+		await self.welcomeChannel.send(f"We will miss you, {u.discordify(str(user))}")
 	
 	
 	@commands.Cog.listener()
@@ -125,8 +125,8 @@ class Bot(commands.Cog):
 				"type": "rich",
 				"color": 0x8000ff,
 				"author": {
-					"name": f"{u.discordify(message.author.name)}#{message.author.discriminator}",
-					"icon_url": message.author.avatar_url
+					"name": u.discordify(str(message.author)),
+					"icon_url": str(message.author.avatar_url)
 				},
 				"fields": [
 					{"name": "Request", "value": message.content}
@@ -135,11 +135,14 @@ class Bot(commands.Cog):
 			embed = discord.Embed(embed=discord.Embed.from_dict(embed_dict))
 			if message.author.id not in ylcb_config.data["devs"]:
 				await message.author.send("Your request has been sent to the developers. They will respond as soon as possible. The embed below is what they have recieved.", embed=embed)
-			l.log(f"Request from {u.discordify(message.author.name)}#{message.author.discriminator} recieved", channel=l.DISCORD)
+			l.log(f"Request from {u.discordify(str(message.author))} recieved", channel=l.DISCORD)
 			
 			for dev in ylcb_config.data["devs"]:
 				developer: discord.User = await self.bot.fetch_user(dev)
-				if developer: await developer.send(embed=embed)
+				if developer:
+					try: await developer.send(embed=embed)
+					except Exception as e:
+						l.log(e, l.ERR, l.DISCORD)
 				else: l.log(f"Developer with ID {dev} does not exist!", l.ERR, l.DISCORD)
 	
 	
