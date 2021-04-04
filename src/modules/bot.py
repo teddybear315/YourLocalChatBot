@@ -194,7 +194,7 @@ class Bot(commands.Cog):
 			"description": "`<...>` is a required parameter.\n`[...]` is an optional parameter.\n`:` specifies a type",
 			"color": 0x15F3FF,
 			"fields": fields,
-			"timestamp": datetime.now().isoformat()
+			"timestamp": datetime.datetime.now().isoformat()
 		}
 		await ctx.send(embed=discord.Embed.from_dict(embed_dict))
 	

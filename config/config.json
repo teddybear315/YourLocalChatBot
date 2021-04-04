@@ -10,10 +10,9 @@
 	],
 	"meta": {
 		"version": "1.3.3",
-		"build_number": 1,
+		"build_number": 2,
 		"changelog": [
-			"Changed how users are displayed in embeds and logs",
-			"Added default command error handling"
+			"Fixed error in help command"
 		]
 	},
 	"discord": {
