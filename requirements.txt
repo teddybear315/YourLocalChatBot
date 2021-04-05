@@ -6,7 +6,7 @@ git-bundle-plus == 0.9.1
 ib == 0.8.0
 irclogparser == 1.0.6
 isocon == 0.3.3
-isonclust == 0.0.6
+isonclust == 0.0.6.1
 isoncorrect == 0.0.7
 kodai-modules == 0.1.0
 lockdoor == 2.2.4
