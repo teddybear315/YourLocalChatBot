@@ -10,7 +10,7 @@
 	],
 	"meta": {
 		"version": "1.3.4",
-		"build_number": 1,
+		"build_number": 2,
 		"changelog": [
 			"Version check made own command",
 			"Changed how reload command works",

@@ -38,10 +38,10 @@ class Bot(commands.Cog):
 	
 	async def version_check(self):
 		# split version and cahced_version into array of [api, major, minor]
-		version_parts = self.version.split(".")
-		cached_version_parts = secrets.data["CACHED_VERSION"].split(".")
+		version_parts = [int(x) for x in self.version.split(".")]
+		cached_version_parts = [int(x) for x in secrets.data["CACHED_VERSION"].split(".")]
 		# if major/api update detected and not debugging
-		if (version_parts[0] != cached_version_parts[0] or version_parts[1] != cached_version_parts[1]) and not debugging:
+		if version_parts[0] != cached_version_parts[0] or version_parts[1] != cached_version_parts[1] and not debugging:
 			#update cached version and build number
 			secrets.data["CACHED_VERSION"] = self.version
 			secrets.data["CACHED_BUILD"] = self.build_num
@@ -58,7 +58,7 @@ class Bot(commands.Cog):
 			secrets.updateFile()
 		
 		# if minor/build update detected and not debugging
-		elif (version_parts[2] == cached_version_parts[2] or self.build_num == secrets.data["CACHED_BUILD"]) and not debugging:
+		elif version_parts[2] != cached_version_parts[2] or self.build_num != secrets.data["CACHED_BUILD"] and not debugging:
 			#update cached version and build number
 			secrets.data["CACHED_BUILD"] = self.build_num
 			secrets.data["CACHED_VERSION"] = self.version

@@ -6,5 +6,6 @@ discord==1.0.1
 discord.py==1.7.1
 idna==3.1
 multidict==5.1.0
+neotermcolor==2.0.10
 typing-extensions==3.7.4.3
 yarl==1.6.3
