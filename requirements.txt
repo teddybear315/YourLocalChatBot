@@ -12,7 +12,7 @@ kodai-modules == 0.1.0
 lockdoor == 2.2.4
 modules-for-mozia == 1.1.0
 mozia-modules == 1.8.3
-neotermcolor == 2.0.8
+neotermcolor == 2.0.10
 ngspeciesid == 0.1.1.1
 openedoo == 1.1.0.19
 opsworks-cli == 0.5.2
