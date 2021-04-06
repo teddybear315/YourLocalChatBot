@@ -9,10 +9,14 @@
 		300062241858912257
 	],
 	"meta": {
-		"version": "1.3.3",
-		"build_number": 2,
+		"version": "1.3.4",
+		"build_number": 1,
 		"changelog": [
-			"Fixed error in help command"
+			"Version check made own command",
+			"Changed how reload command works",
+			"Updated `modules.utilities.Logger.log()`",
+			"\t- msg can now be multiple values",
+			"\t- lvl and channel args changed to kwargs"
 		]
 	},
 	"discord": {

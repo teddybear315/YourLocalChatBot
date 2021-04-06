@@ -1,38 +1,10 @@
-azoo == 1.3.1
-cloudsteak == 0.0.0.10
-component-extraction-api == 0.0.1
-discord.py == 1.7.1
-git-bundle-plus == 0.9.1
-ib == 0.8.0
-irclogparser == 1.0.6
-isocon == 0.3.3
-isonclust == 0.0.6.1
-isoncorrect == 0.0.7
-kodai-modules == 0.1.0
-lockdoor == 2.2.4
-modules-for-mozia == 1.1.0
-mozia-modules == 1.8.3
-neotermcolor == 2.0.10
-ngspeciesid == 0.1.1.1
-openedoo == 1.1.0.19
-opsworks-cli == 0.5.2
-oswald == 0.0.4
-palcole == 0.0.1
-passgify == 0.2.3
-ptysh == 0.1.0
-pytenvis == 0.12
-python-publish == 1.0.0
-requests == 2.25.1
-rst2html5 == 1.10.6
-shinken == 2.4.3
-snptoolkit == 2.3.0
-svg42pdf == 0.2.2
-syrahsearch == 0.0.0.2.2
-tonnyma-utils == 0.0.2
-torbot == 1.2
-tql-python == 0.0.1560759418
-vulnx == 1.6
-weaviate-cli == 2.1.0
-ydh-yourname == 0.0.1
-yl-yourname == 0.0.1
-yxj-yourname == 0.0.1
+aiohttp==3.7.4.post0
+async-timeout==3.0.1
+attrs==20.3.0
+chardet==4.0.0
+discord==1.0.1
+discord.py==1.7.1
+idna==3.1
+multidict==5.1.0
+typing-extensions==3.7.4.3
+yarl==1.6.3

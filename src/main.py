@@ -30,7 +30,7 @@ bot.load_extension("modules.bot")
 
 
 async def on_command_error(ctx, error):
-	l.log(str(error), l.ERR, l.DISCORD)
+	l.log(str(error), lvl=l.ERR, channel=l.DISCORD)
 	embed = discord.Embed(title="Error!", color=0xff0000, description=f"There was an error proccessing your command!\nReason: {str(error)}")
 	embed.timestamp(datetime.datetime)
 	await ctx.send(embed=embed)
@@ -39,18 +39,22 @@ async def on_command_error(ctx, error):
 
 @bot.command(name="reload", hidden=True)
 @u.is_dev()
-async def reload_ext(ctx, ext: str):
-	"""Reloads an extension"""
-	if ext == "all":
+async def reload_ext(ctx, ext: str = None):
+	"""
+	Reloads an extension
+
+	Args:
+		ext (`str`, optional): Extension to reload, if `None` reloads all. Defaults to `None`.
+	"""
+	if not ext:
 		for extension in bot.extensions:
 			bot.reload_extension(extension)
 		await ctx.send(f"{ctx.author.mention}, all extensions reloaded")
-	elif ext == "bot":
-		bot.reload_extension("modules.bot")
-		await ctx.send(f"{ctx.author.mention}, bot reloaded")
 	else:
-		bot.reload_extension("ext."+ext)
-		await ctx.send(f"{ctx.author.mention}, ext.{ext} reloaded")
+		bot.reload_extension(ext)
+		_bot = bot.get_extension(ext)
+		await _bot.version_check()
+		await ctx.send(f"{ctx.author.mention}, {ext} reloaded")
 @reload_ext.error
 async def reload_ext_error(ctx, error):
 	if isinstance(error, commands.CheckFailure):
@@ -61,7 +65,7 @@ async def reload_ext_error(ctx, error):
 
 l.log("Starting script...")
 if debugging:
-	l.log("Debug mode on", l.WRN)
+	l.log("Debug mode on", lvl=l.WRN)
 	bot.run(secrets.data["dev_token"])
 else:
 	bot.run(secrets.data["token"])

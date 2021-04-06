@@ -11,6 +11,15 @@ from .utilities import utilities as u
 from .utilities import ylcb_config
 
 
+_guild = 0
+_member_role = 0
+_streamer_role = 0
+_welcome_channel = 0
+_changelog_channel = 0
+_suggestion_channel = 0
+_announcement_channel = 0
+
+
 class Bot(commands.Cog):
 	"""Base bot commands and functions"""
 	def __init__(self, bot: commands.Bot):
@@ -24,28 +33,10 @@ class Bot(commands.Cog):
 		self.version: str = ylcb_config.data["meta"]["version"]
 		self.build_num: int = ylcb_config.data["meta"]["build_number"]
 		self.bot.remove_command("help")
+		l.log(bot.is_ready(), "init is_ready", lvl=l.FLG)
 	
 	
-	@commands.Cog.listener()
-	async def on_ready(self):
-		l.log("Discord bot ready...", channel=l.DISCORD)
-		l.log(f"Running version: {self.version}b{self.build_num}", channel=l.DISCORD)
-		
-		
-		## server
-		self.guild = self.bot.get_guild(ylcb_config.data["discord"]["guild_id"])
-		
-		## roles
-		self.memberRole		= self.guild.get_role(ylcb_config.data["discord"]["member_role_id"])
-		self.streamerRole	= self.guild.get_role(ylcb_config.data["discord"]["streamer_role_id"])
-		
-		## channels
-		self.welcomeChannel 		= self.bot.get_channel(ylcb_config.data["discord"]["welcome_channel_id"])
-		self.changelogChannel		= self.bot.get_channel(ylcb_config.data["discord"]["changelog_channel_id"])
-		self.suggestionChannel		= self.bot.get_channel(ylcb_config.data["discord"]["suggestion_channel_id"])
-		self.announcementChannel	= self.bot.get_channel(ylcb_config.data["discord"]["announcement_channel_id"])
-		
-		
+	async def version_check(self):
 		# split version and cahced_version into array of [api, major, minor]
 		version_parts = self.version.split(".")
 		cached_version_parts = secrets.data["CACHED_VERSION"].split(".")
@@ -61,7 +52,7 @@ class Bot(commands.Cog):
 			embed.set_author(name=f"Your Local Chat Bot", icon_url=self.bot.user.avatar_url)
 			embed.add_field(name=f"v{self.version}b{self.build_num} Changelog", value=f"\t- {nt.join(ylcb_config.data['meta']['changelog'])}", inline=False)
 			
-			msg = await self.changelogChannel.send(embed=embed)
+			msg = await self.changelog_channel.send(embed=embed)
 			secrets.data["CHANGELOG_MESSAGE_ID"] = msg.id
 			## updates secrets
 			secrets.updateFile()
@@ -71,9 +62,9 @@ class Bot(commands.Cog):
 			#update cached version and build number
 			secrets.data["CACHED_BUILD"] = self.build_num
 			secrets.data["CACHED_VERSION"] = self.version
-			msg = await self.changelogChannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
+			msg = await self.changelog_hannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 			if msg.author != self.bot.user:
-				l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", l.WRN, l.DISCORD)
+				l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", lvl=l.WRN, channel=l.DISCORD)
 			else:
 				nt = "\n\t- "
 				embed = msg.embeds[0]
@@ -81,6 +72,46 @@ class Bot(commands.Cog):
 				await msg.edit(embed=embed)
 			## updates secrets
 			secrets.updateFile()
+	
+	
+	@commands.Cog.listener()
+	async def on_ready(self):
+		l.log(self.bot.is_ready(), "on_ready is_ready", lvl=l.FLG)
+		l.log("Discord bot ready...", channel=l.DISCORD)
+		l.log(f"Running version: {self.version}b{self.build_num}", channel=l.DISCORD)
+		
+		global _guild
+		global _member_role
+		global _streamer_role
+		global _welcome_channel
+		global _changelog_channel
+		global _suggestion_channel
+		global _announcement_channel
+		
+		
+		## server
+		_guild =  self.bot.get_guild(ylcb_config.data["discord"]["guild_id"])
+		self.guild = _guild
+		
+		## roles
+		_member_role = self.guild.get_role(ylcb_config.data["discord"]["member_role_id"])
+		self.member_role = _member_role
+		_streamer_role = self.guild.get_role(ylcb_config.data["discord"]["streamer_role_id"])
+		self.streamer_role = _streamer_role
+		
+		## channels
+		_welcome_channel		= self.bot.get_channel(ylcb_config.data["discord"]["welcome_channel_id"])
+		self.welcome_channel = _welcome_channel
+		_changelog_channel		= self.bot.get_channel(ylcb_config.data["discord"]["changelog_channel_id"])
+		self.changelog_channel = _changelog_channel
+		_suggestion_channel		= self.bot.get_channel(ylcb_config.data["discord"]["suggestion_channel_id"])
+		self.suggestion_channel = _suggestion_channel
+		_announcement_channel	= self.bot.get_channel(ylcb_config.data["discord"]["announcement_channel_id"])
+		self.announcement_channel = _announcement_channel
+		
+		
+		await self.version_check()
+		
 		
 		## for every extension you want to load, load it
 		for extension in ylcb_config.data["extensions"]:
@@ -91,8 +122,8 @@ class Bot(commands.Cog):
 					if not self.bot.extensions.__contains__(f"ext.{requirement}") and requirement != "":
 						try: self.bot.load_extension(f"ext.{requirement}")
 						except Exception as e:
-							l.log(f"\tCould not load requirement {requirement}", l.ERR, l.DISCORD)
-							l.log(f"\t{e}",l.ERR,l.DISCORD)
+							l.log(f"\tCould not load requirement {requirement}", lvl=l.ERR, channel=l.DISCORD)
+							l.log(f"\t{e}", lvl=l.ERR, channel=l.DISCORD)
 							self.bot.remove_cog(extension)
 							loadable = False
 						else: l.log(f"\tLoaded requirement {requirement}", channel=l.DISCORD)
@@ -106,19 +137,22 @@ class Bot(commands.Cog):
 	
 	@commands.Cog.listener()
 	async def on_member_join(self, user: discord.Member):
-		await self.welcomeChannel.send(f"Welcome to {self.guild.name}, {user.mention}")
-		await user.add_roles(memberRole)
+		await self.welcome_channel.send(f"Welcome to {self.guild.name}, {user.mention}")
+		await user.add_roles(_member_role)
 	
 	
 	@commands.Cog.listener()
 	async def on_member_remove(self, user: discord.Member):
-		await self.welcomeChannel.send(f"We will miss you, {u.discordify(str(user))}")
+		await self.welcome_channel.send(f"We will miss you, {u.discordify(str(user))}")
 	
 	
 	@commands.Cog.listener()
 	async def on_message(self, message: discord.Message):
+		if message.author == self.bot.user: return
 		await self.bot.wait_until_ready()
-		if message.channel == self.suggestionChannel:
+		l.log(_suggestion_channel, "_suggestion_channel")
+		l.log(self.suggestion_channel, "self.suggestion_channel")
+		if message.channel == _suggestion_channel:
 			embed_dict = {
 				"title": "Feature Request",
 				"timestamp": datetime.now().isoformat(),
@@ -142,8 +176,8 @@ class Bot(commands.Cog):
 				if developer:
 					try: await developer.send(embed=embed)
 					except Exception as e:
-						l.log(e, l.ERR, l.DISCORD)
-				else: l.log(f"Developer with ID {dev} does not exist!", l.ERR, l.DISCORD)
+						l.log(e, lvl=l.ERR, channel=l.DISCORD)
+				else: l.log(f"Developer with ID {dev} does not exist!", lvl=l.ERR, channel=l.DISCORD)
 	
 	
 	@commands.before_invoke
@@ -179,7 +213,7 @@ class Bot(commands.Cog):
 				cog: Extension = self.bot.get_cog(cog)
 				fields.append({"name": cog.name, "value": cog.description, "inline": True})
 		else:
-			if self.bot.extensions.extensions.__contains__(f"ext.{command}"):
+			if f"ext.{command}" in self.bot.extensions:
 				cog: commands.Cog = self.bot.get_cog(command)
 				for cmd in cog.get_commands():
 					cmd: commands.Command
@@ -239,7 +273,7 @@ class Bot(commands.Cog):
 		except: pass
 		await ctx.send(f"Goodbye.")
 		await self.bot.close()
-		l.log("Successfully logged out and closed. Exiting...", l.FLG, l.DISCORD)
+		l.log("Successfully logged out and closed. Exiting...", lvl=l.FLG, channel=l.DISCORD)
 		exit(1)
 
 

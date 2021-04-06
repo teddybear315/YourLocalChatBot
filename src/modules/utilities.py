@@ -55,7 +55,6 @@ class Logger:
 	# Input Channels
 	SYSTEM	= 0
 	DISCORD	= 1
-	TWITCH	= 2
 	
 	FILE = 0
 	CONSOLE = 1
@@ -80,23 +79,24 @@ class Logger:
 			file.write(string)
 	
 	
-	def log(self, msg, lvl = LOG, channel = SYSTEM, destination = BOTH):
+	def log(self, *msg, lvl = LOG, channel = SYSTEM, destination = BOTH):
 		"""
 		Decent logging system
 
 		Args:
-			msg (str): Message to log
-			lvl (int, optional): Logging level. Defaults to LOG.
-			channel (int, optional): Logging channel. Defaults to SYSTEM.
+			msg (Union[`str`, `commands.Context`]): Message or command to log
+			lvl (`int`, optional): Logging level. Defaults to LOG, If msg is `commands.Context` set to CMD, `[CMD, WRN, ERR, LOG, FLG]`.
+			channel (`int`, optional): Logging channel. Defaults to SYSTEM, If msg is `commands.Context` set to DISCORD, `[CMD, DISCORD]`.
 		"""
 		timestamp = str(datetime.now().isoformat(timespec="seconds")).replace("T", " ")
 		
 		prefix = "LOG"
 		color = "white"
 		
-		if type(msg) is commands.Context:
+		if type(msg) == commands.Context:
 			lvl = self.CMD
-			msg = f"{msg.command.name} command ran by {str(msg.author)}"
+			destination = self.DISCORD
+			msg = [f"{msg.command.name} command ran by {str(msg.author)}"]
 		
 		if lvl == self.WRN:
 			prefix = "WRN"
@@ -110,7 +110,7 @@ class Logger:
 		elif lvl == self.FLG:
 			prefix = "FLG"
 			color = "magenta"
-		
+		msg = ' '.join([str(x) for x in msg])
 		cprint(f"[{channel}][{prefix}] {timestamp}: {msg}", color=color)
 		self.write(f"[{channel}][{prefix}] {timestamp}: {msg}\n")
 
