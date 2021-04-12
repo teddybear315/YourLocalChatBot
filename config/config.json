@@ -10,13 +10,9 @@
 	],
 	"meta": {
 		"version": "1.3.4",
-		"build_number": 2,
+		"build_number": 4,
 		"changelog": [
-			"Version check made own command",
-			"Changed how reload command works",
-			"Updated `modules.utilities.Logger.log()`",
-			"\t- msg can now be multiple values",
-			"\t- lvl and channel args changed to kwargs"
+			"Base module no longer shows on every help command screen"
 		]
 	},
 	"discord": {

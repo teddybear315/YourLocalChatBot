@@ -111,8 +111,8 @@ class Logger:
 			prefix = "FLG"
 			color = "magenta"
 		
-		if type(msg) != str:
-			msg = ' '.join([str(x) for x in msg])
+		
+		msg = ' '.join([str(x) for x in msg])
 		
 		cprint(f"[{channel}][{prefix}] {timestamp}: {msg}", color=color)
 		self.write(f"[{channel}][{prefix}] {timestamp}: {msg}\n")

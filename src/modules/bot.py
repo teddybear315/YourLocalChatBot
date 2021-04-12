@@ -33,7 +33,6 @@ class Bot(commands.Cog):
 		self.version: str = ylcb_config.data["meta"]["version"]
 		self.build_num: int = ylcb_config.data["meta"]["build_number"]
 		self.bot.remove_command("help")
-		l.log(bot.is_ready(), "init is_ready", lvl=l.FLG)
 	
 	
 	async def version_check(self):
@@ -62,7 +61,7 @@ class Bot(commands.Cog):
 			#update cached version and build number
 			secrets.data["CACHED_BUILD"] = self.build_num
 			secrets.data["CACHED_VERSION"] = self.version
-			msg = await self.changelog_hannel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
+			msg = await self.changelog_channel.fetch_message(secrets.data["CHANGELOG_MESSAGE_ID"])
 			if msg.author != self.bot.user:
 				l.log(f"Changelog message was sent by another user. Changelog message updating won't work until CHANGELOG_MESSAGE_ID in config/secrets.json is updated", lvl=l.WRN, channel=l.DISCORD)
 			else:
@@ -76,7 +75,6 @@ class Bot(commands.Cog):
 	
 	@commands.Cog.listener()
 	async def on_ready(self):
-		l.log(self.bot.is_ready(), "on_ready is_ready", lvl=l.FLG)
 		l.log("Discord bot ready...", channel=l.DISCORD)
 		l.log(f"Running version: {self.version}b{self.build_num}", channel=l.DISCORD)
 		
@@ -205,9 +203,10 @@ class Bot(commands.Cog):
 			command (`str`, optional): Command or extension name. Defaults to `None`.
 		"""
 		
-		fields = [{"name": "Base", "value": "Base bot commands - ylcb-devs", "inline": True}]
+		fields = []
 		
 		if not command:
+			fields.append({"name": "Base", "value": "Base bot commands - ylcb-devs", "inline": True})
 			for i,cog in enumerate(self.bot.cogs):
 				if not i: continue
 				cog: Extension = self.bot.get_cog(cog)

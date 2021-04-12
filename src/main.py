@@ -39,7 +39,7 @@ async def on_command_error(ctx, error):
 
 @bot.command(name="reload", hidden=True)
 @u.is_dev()
-async def reload_ext(ctx, ext: str = None):
+async def reload_ext(ctx, *ext: tuple):
 	"""
 	Reloads an extension
 
@@ -50,11 +50,10 @@ async def reload_ext(ctx, ext: str = None):
 		for extension in bot.extensions:
 			bot.reload_extension(extension)
 		await ctx.send(f"{ctx.author.mention}, all extensions reloaded")
-	else:
-		bot.reload_extension(ext)
-		_bot = bot.get_extension(ext)
-		await _bot.version_check()
-		await ctx.send(f"{ctx.author.mention}, {ext} reloaded")
+		return
+	bot.reload_extension(ext)
+	await bot.on_ready()
+	await ctx.send(f"{ctx.author.mention}, {ext} reloaded")
 @reload_ext.error
 async def reload_ext_error(ctx, error):
 	if isinstance(error, commands.CheckFailure):
