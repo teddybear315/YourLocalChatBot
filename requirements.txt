@@ -4,7 +4,7 @@ attrs==20.3.0
 chardet==4.0.0
 discord==1.0.1
 discord.py==1.7.1
-idna==3.1
+idna==3.2
 multidict==5.1.0
 neotermcolor==2.0.10
 typing-extensions==3.7.4.3
