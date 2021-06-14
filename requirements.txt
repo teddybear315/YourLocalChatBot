@@ -3,7 +3,7 @@ async-timeout==3.0.1
 attrs==20.3.0
 chardet==4.0.0
 discord==1.0.1
-discord.py==1.7.1
+discord.py==1.7.3
 idna==3.1
 multidict==5.1.0
 neotermcolor==2.0.10
